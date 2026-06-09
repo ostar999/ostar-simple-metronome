@@ -246,7 +246,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 6px;
     flex-wrap: wrap;
   }
   .beat-dot {
@@ -304,6 +304,18 @@
   }
   .beat-dot.state-strong.active {
     outline-color: rgba(212,69,59,0.4);
+  }
+  /* sub-beat dot */
+  .beat-dot.sub-dot {
+    width: 10px; height: 10px;
+    background: var(--border);
+    color: transparent;
+    cursor: default;
+    font-size: 0;
+    align-self: center;
+  }
+  .beat-dot.sub-dot.active {
+    background: var(--text-secondary);
   }
 
   .beat-legend {
@@ -408,6 +420,48 @@
     color: var(--text);
   }
   .btn-ts-quick.active {
+    background: var(--text);
+    color: #fff;
+    border-color: var(--text);
+  }
+
+  /* ── Subdivision selector ── */
+  .sub-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sub-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .sub-buttons {
+    display: flex;
+    gap: 4px;
+    flex: 1;
+  }
+  .btn-sub {
+    flex: 1;
+    padding: 6px 4px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all var(--transition);
+    outline: none;
+    text-align: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-sub:hover { border-color: #ccc; color: var(--text); }
+  .btn-sub.active {
     background: var(--text);
     color: #fff;
     border-color: var(--text);
@@ -775,6 +829,17 @@
     </div>
   </div>
 
+  <!-- Subdivision -->
+  <div class="sub-row">
+    <span class="sub-label">音符</span>
+    <div class="sub-buttons" id="subButtons">
+      <button class="btn-sub active" data-sub="1">4分</button>
+      <button class="btn-sub" data-sub="2">8分</button>
+      <button class="btn-sub" data-sub="4">16分</button>
+      <button class="btn-sub" data-sub="8">32分</button>
+    </div>
+  </div>
+
   <!-- Sound + Volume -->
   <div class="sound-row">
     <span class="sound-label">音色</span>
@@ -854,6 +919,7 @@
   let gainStrong = 1.0;
   let gainSecondary = 0.6;
   let gainWeak = 0.5;
+  let subdivision = 1; // 1=4分, 2=8分, 4=16分, 8=32分
   let activeTsButton = ACTIVE_TS;
 
   // Tap tempo
@@ -882,6 +948,7 @@
   const $pendulumArm = document.getElementById('pendulumArm');
   const $scaleMarks  = document.getElementById('scaleMarks');
   const $tsButtons   = document.getElementById('tsButtons');
+  const $subButtons  = document.getElementById('subButtons');
   const $soundOptions= document.getElementById('soundOptions');
   const $volumeSlider= document.getElementById('volumeSlider');
   const $volumeVal   = document.getElementById('volumeVal');
@@ -905,6 +972,8 @@
   // ═══════════════════════════════════════════════════════
   // Beat dots UI
   // ═══════════════════════════════════════════════════════
+  function getTotalSteps() { return beatsPerMeasure * subdivision; }
+
   function renderBeatDots() {
     let html = '';
     for (let i = 0; i < beatsPerMeasure; i++) {
@@ -913,7 +982,6 @@
     }
     $beatRow.innerHTML = html;
 
-    // Bind click to cycle state
     $beatRow.querySelectorAll('.beat-dot').forEach(dot => {
       dot.addEventListener('click', () => {
         const idx = parseInt(dot.dataset.idx, 10);
@@ -933,9 +1001,10 @@
   }
 
   function updateActiveDot() {
-    const dots = $beatRow.querySelectorAll('.beat-dot');
-    dots.forEach((d, i) => {
-      d.classList.toggle('active', isPlaying && i === currentBeat);
+    if (!isPlaying) return;
+    const mainIdx = Math.floor(currentBeat / subdivision);
+    $beatRow.querySelectorAll('.beat-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === mainIdx);
     });
   }
 
@@ -1044,41 +1113,54 @@
   const SCHEDULE_AHEAD = 0.1;
   const LOOK_AHEAD_MS = 20;
 
-  function nextBeat() {
-    const secondsPerBeat = 60.0 / bpm;
-    nextNoteTime += secondsPerBeat;
-    currentBeat = (currentBeat + 1) % beatsPerMeasure;
+  function nextStep() {
+    const total = getTotalSteps();
+    const secondsPerStep = (60.0 / bpm) / subdivision;
+    nextNoteTime += secondsPerStep;
+    currentBeat = (currentBeat + 1) % total;
     globalBeatCount++;
   }
 
-  function scheduleBeat(beatTime, beatIdx) {
-    const state = beatStates[beatIdx] || 'weak';
-    if (state !== 'rest') {
-      playClick(beatTime, getBeatGain(state), soundType);
+  function scheduleBeat(beatTime, stepIdx) {
+    const total = getTotalSteps();
+    const isMain = stepIdx % subdivision === 0;
+    const mainIdx = Math.floor(stepIdx / subdivision);
+    const mainState = beatStates[mainIdx] || 'weak';
+
+    if (mainState !== 'rest') {
+      if (isMain) {
+        playClick(beatTime, getBeatGain(mainState), soundType);
+      } else {
+        // Sub-beat: soft click
+        playClick(beatTime, gainWeak * 0.35, soundType);
+      }
     }
-    scheduleVisualUpdate(beatTime, beatIdx);
+    scheduleVisualUpdate(beatTime, stepIdx, isMain);
   }
 
-  function scheduleVisualUpdate(beatTime, beatIdx) {
+  function scheduleVisualUpdate(beatTime, stepIdx, isMain) {
     const now = audioCtx.currentTime;
     const delay = Math.max(0, (beatTime - now) * 1000);
-    setTimeout(() => onBeatVisual(beatIdx), delay);
+    setTimeout(() => onStepVisual(stepIdx, isMain), delay);
   }
 
-  function onBeatVisual(beatIdx) {
+  function onStepVisual(stepIdx, isMain) {
+    const mainIdx = Math.floor(stepIdx / subdivision);
     $beatRow.querySelectorAll('.beat-dot').forEach((d, i) => {
-      d.classList.toggle('active', i === beatIdx);
+      d.classList.toggle('active', i === mainIdx && isMain);
     });
-    $beatCounter.textContent = `${beatIdx + 1} / ${beatsPerMeasure}`;
-    pendulumAngle = -pendulumAngle;
-    lastBeatTime = performance.now();
+    $beatCounter.textContent = `${mainIdx + 1} / ${beatsPerMeasure}`;
+    if (isMain) {
+      pendulumAngle = -pendulumAngle;
+      lastBeatTime = performance.now();
+    }
   }
 
   function scheduler() {
     if (!isPlaying) return;
     while (nextNoteTime < audioCtx.currentTime + SCHEDULE_AHEAD) {
       scheduleBeat(nextNoteTime, currentBeat);
-      nextBeat();
+      nextStep();
     }
     schedulerTimer = setTimeout(scheduler, LOOK_AHEAD_MS);
   }
@@ -1220,6 +1302,28 @@
   }
 
   // ═══════════════════════════════════════════════════════
+  // Subdivision
+  // ═══════════════════════════════════════════════════════
+  function setSubdivision(sub) {
+    sub = parseInt(sub, 10);
+    if (![1,2,4,8].includes(sub)) return;
+    subdivision = sub;
+    updateSubUI();
+    renderBeatDots();
+    updateActiveDot();
+    if (!isPlaying) {
+      $beatCounter.textContent = `0 / ${beatsPerMeasure}`;
+    }
+    saveSettings();
+  }
+
+  function updateSubUI() {
+    $subButtons.querySelectorAll('.btn-sub').forEach(b => {
+      b.classList.toggle('active', parseInt(b.dataset.sub, 10) === subdivision);
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════
   // Sound type
   // ═══════════════════════════════════════════════════════
   function setSoundType(type) {
@@ -1281,6 +1385,7 @@
       gainSecondary,
       gainWeak,
       savedSecondaryGain,
+      subdivision,
       activeTsButton,
     };
     try {
@@ -1305,6 +1410,7 @@
     gainSecondary = 0.6;
     gainWeak = 0.5;
     savedSecondaryGain = 0.6;
+    subdivision = 1;
     activeTsButton = '4/4';
 
     // Update UI
@@ -1336,6 +1442,9 @@
     $gainStrong.value = '1.0';
     $gainSecondary.value = '0.6';
     $gainWeak.value = '0.5';
+
+    // Update subdivision UI
+    updateSubUI();
 
     // Clear localStorage
     try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
@@ -1401,6 +1510,12 @@
         savedSecondaryGain = Math.max(0, Math.min(1, s.savedSecondaryGain));
       } else if (typeof s.gainSecondary === 'number') {
         savedSecondaryGain = gainSecondary;
+      }
+
+      // Restore subdivision
+      if (typeof s.subdivision === 'number') {
+        subdivision = [1,2,4,8].includes(s.subdivision) ? s.subdivision : 1;
+        updateSubUI();
       }
       if (typeof s.gainWeak === 'number') {
         gainWeak = Math.max(0, Math.min(1, s.gainWeak));
@@ -1503,6 +1618,13 @@
   $gainStrong.addEventListener('change', handleGainChange);
   $gainSecondary.addEventListener('change', handleGainChange);
   $gainWeak.addEventListener('change', handleGainChange);
+
+  // Subdivision buttons
+  $subButtons.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-sub');
+    if (!btn) return;
+    setSubdivision(btn.dataset.sub);
+  });
 
   // Time sig quick buttons
   $tsButtons.addEventListener('click', (e) => {
