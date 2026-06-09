@@ -44,16 +44,16 @@
   }
 
   .metronome {
-    width: 520px;
+    width: 440px;
     max-width: calc(100vw - 24px);
     background: var(--surface);
-    border-radius: 32px;
+    border-radius: 28px;
     box-shadow: var(--shadow-lg), var(--shadow-sm);
-    padding: 48px 44px 40px;
+    padding: 36px 34px 32px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 28px;
+    gap: 22px;
   }
 
   /* ── Header ── */
@@ -65,7 +65,7 @@
     margin-bottom: -8px;
   }
   .metronome-author {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
     color: var(--text-secondary);
   }
@@ -94,8 +94,8 @@
   /* ── Pendulum ── */
   .pendulum-stage {
     position: relative;
-    width: 220px;
-    height: 190px;
+    width: 190px;
+    height: 160px;
     display: flex;
     align-items: flex-start;
     justify-content: center;
@@ -104,7 +104,7 @@
   .pendulum-pivot {
     position: absolute;
     top: 0;
-    width: 10px; height: 10px;
+    width: 8px; height: 8px;
     background: var(--text);
     border-radius: 50%;
     z-index: 2;
@@ -113,18 +113,18 @@
   .pendulum-arm {
     position: absolute;
     top: 5px;
-    width: 2px; height: 140px;
+    width: 2px; height: 120px;
     background: linear-gradient(to bottom, #555, #999);
     transform-origin: top center;
     border-radius: 1px;
   }
   .pendulum-weight {
     position: absolute;
-    top: 110px;
-    width: 30px; height: 38px;
+    top: 95px;
+    width: 26px; height: 32px;
     background: linear-gradient(135deg, #c4956a, #a0724a);
-    border-radius: 6px;
-    margin-left: -15px; left: 50%;
+    border-radius: 5px;
+    margin-left: -13px; left: 50%;
     box-shadow: 0 2px 8px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.3);
   }
   .pendulum-weight::after {
@@ -150,13 +150,13 @@
   /* ── BPM ── */
   .bpm-section { text-align: center; line-height: 1; }
   .bpm-value {
-    font-size: 96px;
+    font-size: 80px;
     font-weight: 600;
     color: var(--text);
     letter-spacing: -0.03em;
     font-variant-numeric: tabular-nums;
     font-family: "SF Mono", "JetBrains Mono", "Fira Code", monospace;
-    width: 230px;
+    width: 200px;
     text-align: center;
     border: 2px solid transparent;
     border-radius: var(--radius-sm);
@@ -174,16 +174,70 @@
 
   .bpm-label {
     display: block;
-    font-size: 15px; font-weight: 500;
+    font-size: 13px; font-weight: 500;
     color: var(--text-secondary);
     text-transform: uppercase; letter-spacing: 0.1em;
-    margin-top: 2px;
+    margin-top: 1px;
   }
   .tempo-marking {
     display: block;
-    font-size: 16px; color: var(--text-secondary);
-    margin-top: 5px; font-style: italic;
-    min-height: 22px;
+    font-size: 14px; color: var(--text-secondary);
+    margin-top: 4px; font-style: italic;
+    min-height: 18px;
+  }
+
+  /* ── Tempo presets ── */
+  .tempo-presets {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    margin-top: 10px;
+    width: 100%;
+  }
+  .tempo-presets-row {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    width: 100%;
+  }
+  .btn-tempo-preset {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 48px;
+    padding: 4px 6px;
+    font-family: inherit;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition);
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    line-height: 1.25;
+    flex: none;
+  }
+  .btn-tempo-preset:hover { border-color: #ccc; color: var(--text); }
+  .btn-tempo-preset:active { transform: scale(0.96); }
+  .btn-tempo-preset .preset-name {
+    font-size: 11px;
+    font-style: italic;
+    font-weight: 500;
+  }
+  .btn-tempo-preset .preset-zh {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .btn-tempo-preset .preset-bpm {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    font-family: "SF Mono", "JetBrains Mono", "Fira Code", monospace;
   }
 
   /* ── Beat row ── */
@@ -192,17 +246,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 14px;
+    gap: 10px;
     flex-wrap: wrap;
   }
   .beat-dot {
-    width: 40px; height: 40px;
+    width: 34px; height: 34px;
     border-radius: 50%;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 600;
     color: #fff;
     transition: all var(--transition);
@@ -212,8 +266,8 @@
   .beat-dot::after {
     content: attr(data-label);
     position: absolute;
-    bottom: -19px;
-    font-size: 12px;
+    bottom: -16px;
+    font-size: 10px;
     color: var(--text-muted);
     white-space: nowrap;
     opacity: 0;
@@ -225,23 +279,23 @@
   /* beat state styles */
   .beat-dot.state-strong {
     background: var(--accent);
-    width: 44px; height: 44px;
+    width: 38px; height: 38px;
     box-shadow: 0 2px 8px rgba(212,69,59,0.35);
   }
   .beat-dot.state-secondary {
     background: var(--secondary-accent);
-    width: 40px; height: 40px;
+    width: 34px; height: 34px;
     box-shadow: 0 2px 6px rgba(224,138,61,0.3);
   }
   .beat-dot.state-weak {
     background: var(--weak);
-    width: 36px; height: 36px;
+    width: 30px; height: 30px;
   }
   .beat-dot.state-rest {
     background: transparent;
     border: 2px dashed var(--rest);
     color: var(--text-muted);
-    width: 36px; height: 36px;
+    width: 30px; height: 30px;
   }
   /* active glow */
   .beat-dot.active {
@@ -255,9 +309,9 @@
   .beat-legend {
     display: flex;
     justify-content: center;
-    gap: 18px;
-    margin-top: 10px;
-    font-size: 13px;
+    gap: 14px;
+    margin-top: 8px;
+    font-size: 12px;
     color: var(--text-muted);
   }
   .beat-legend span { display: flex; align-items: center; gap: 4px; }
@@ -301,18 +355,18 @@
     transform: scale(1.12);
   }
   .slider-label {
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    white-space: nowrap;
-    min-width: 32px;
-    text-align: center;
-  }
-  .slider-val {
     font-size: 14px;
     font-weight: 500;
     color: var(--text-secondary);
-    min-width: 36px;
+    white-space: nowrap;
+    min-width: 28px;
+    text-align: center;
+  }
+  .slider-val {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    min-width: 30px;
     text-align: center;
     font-variant-numeric: tabular-nums;
     font-family: "SF Mono", "JetBrains Mono", "Fira Code", monospace;
@@ -323,20 +377,20 @@
     width: 100%;
   }
   .ts-label {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     color: var(--text-muted);
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     letter-spacing: 0.04em;
   }
   .ts-buttons {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
   }
   .btn-ts-quick {
-    padding: 8px 16px;
-    font-size: 15px;
+    padding: 6px 14px;
+    font-size: 14px;
     font-weight: 500;
     border: 1.5px solid var(--border);
     border-radius: var(--radius-full);
@@ -367,7 +421,7 @@
     gap: 8px;
   }
   .sound-label {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     color: var(--text-muted);
     letter-spacing: 0.04em;
@@ -375,13 +429,13 @@
   }
   .sound-options {
     display: flex;
-    gap: 6px;
+    gap: 4px;
     flex: 1;
   }
   .btn-sound {
     flex: 1;
-    padding: 10px 6px;
-    font-size: 14px;
+    padding: 8px 4px;
+    font-size: 13px;
     font-weight: 500;
     border: 1.5px solid var(--border);
     border-radius: var(--radius-sm);
@@ -405,14 +459,14 @@
   .toggle-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 14px;
+    gap: 6px;
+    font-size: 13px;
     font-weight: 500;
     color: var(--text-secondary);
   }
   .toggle-track {
-    width: 44px; height: 26px;
-    border-radius: 13px;
+    width: 40px; height: 22px;
+    border-radius: 11px;
     background: var(--border);
     cursor: pointer;
     position: relative;
@@ -423,7 +477,7 @@
     background: var(--accent);
   }
   .toggle-thumb {
-    width: 22px; height: 22px;
+    width: 18px; height: 18px;
     border-radius: 50%;
     background: #fff;
     position: absolute;
@@ -439,11 +493,11 @@
   .gain-row {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     width: 100%;
   }
   .gain-label {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
     color: var(--text-muted);
     letter-spacing: 0.04em;
@@ -453,18 +507,18 @@
   .gain-item {
     display: flex;
     align-items: center;
-    gap: 3px;
+    gap: 2px;
   }
   .gain-tag {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     color: var(--text-secondary);
     white-space: nowrap;
   }
   .gain-item input[type="number"] {
-    width: 48px;
-    padding: 5px 2px;
-    font-size: 14px;
+    width: 44px;
+    padding: 4px 2px;
+    font-size: 13px;
     font-weight: 500;
     font-family: "SF Mono", "JetBrains Mono", "Fira Code", monospace;
     font-variant-numeric: tabular-nums;
@@ -521,24 +575,24 @@
   }
   .btn:active { transform: scale(0.96); background: #f5f5f3; }
   .btn-play {
-    width: 84px; height: 84px;
+    width: 72px; height: 72px;
     border-radius: 50%;
-    font-size: 30px;
+    font-size: 26px;
     border: none;
     background: var(--accent);
     color: #fff;
-    box-shadow: 0 4px 18px rgba(212,69,59,0.35);
+    box-shadow: 0 4px 14px rgba(212,69,59,0.35);
     flex-shrink: 0;
   }
   .btn-play:active { transform: scale(0.94); box-shadow: 0 2px 8px rgba(212,69,59,0.3); }
-  .btn-play.playing { background: #2c2c2c; box-shadow: 0 4px 18px rgba(0,0,0,0.2); }
+  .btn-play.playing { background: #2c2c2c; box-shadow: 0 4px 14px rgba(0,0,0,0.2); }
   .btn-sm {
-    width: 56px; height: 56px;
-    font-size: 24px; font-weight: 400;
+    width: 48px; height: 48px;
+    font-size: 20px; font-weight: 400;
   }
   .btn-tap {
-    width: 56px; height: 56px;
-    font-size: 14px; font-weight: 600;
+    width: 48px; height: 48px;
+    font-size: 13px; font-weight: 600;
     letter-spacing: 0.03em;
   }
 
@@ -548,18 +602,18 @@
     width: 100%;
     justify-content: space-between;
     align-items: center;
-    font-size: 14px;
+    font-size: 13px;
     color: var(--text-muted);
   }
   .beat-counter {
     font-variant-numeric: tabular-nums;
     font-family: "SF Mono", "JetBrains Mono", "Fira Code", monospace;
-    font-size: 16px;
+    font-size: 14px;
   }
-  .hint { color: var(--text-muted); font-size: 13px; }
+  .hint { color: var(--text-muted); font-size: 12px; }
   .btn-reset {
-    padding: 6px 14px;
-    font-size: 13px;
+    padding: 5px 12px;
+    font-size: 12px;
     font-weight: 500;
     border: 1.5px solid var(--border);
     border-radius: var(--radius-full);
@@ -583,27 +637,31 @@
   }
 
   /* ── Responsive ── */
-  @media (max-width: 540px) {
-    .metronome { width: calc(100vw - 24px); padding: 30px 20px 24px; gap: 22px; border-radius: 24px; }
-    .bpm-value { font-size: 64px; width: 160px; }
-    .pendulum-stage { width: 170px; height: 150px; }
-    .pendulum-arm { height: 115px; }
-    .pendulum-weight { top: 90px; width: 24px; height: 30px; margin-left: -12px; }
-    .beat-dot { width: 30px; height: 30px; font-size: 12px; }
-    .beat-dot.state-strong { width: 34px; height: 34px; }
-    .beat-dot.state-secondary { width: 30px; height: 30px; }
+  @media (max-width: 460px) {
+    .metronome { width: calc(100vw - 16px); padding: 24px 16px 20px; gap: 18px; border-radius: 22px; }
+    .bpm-value { font-size: 56px; width: 150px; }
+    .pendulum-stage { width: 150px; height: 130px; }
+    .pendulum-arm { height: 95px; }
+    .pendulum-weight { top: 75px; width: 22px; height: 28px; margin-left: -11px; }
+    .beat-dot { width: 28px; height: 28px; font-size: 10px; }
+    .beat-dot.state-strong { width: 30px; height: 30px; }
+    .beat-dot.state-secondary { width: 28px; height: 28px; }
     .beat-dot.state-weak,
-    .beat-dot.state-rest { width: 26px; height: 26px; }
-    .beat-dot::after { font-size: 9px; bottom: -14px; }
-    .btn-play { width: 68px; height: 68px; font-size: 26px; }
-    .btn-sm { width: 48px; height: 48px; font-size: 20px; }
-    .btn-tap { width: 48px; height: 48px; font-size: 13px; }
-    .btn-ts-quick { padding: 6px 12px; font-size: 13px; }
-    .btn-sound { padding: 8px 4px; font-size: 12px; }
-    .footer { font-size: 12px; flex-wrap: wrap; gap: 6px; justify-content: center; }
-    .beat-counter { font-size: 14px; }
-    .hint { font-size: 11px; }
-    .btn-reset { font-size: 11px; padding: 5px 12px; }
+    .beat-dot.state-rest { width: 24px; height: 24px; }
+    .beat-dot::after { font-size: 8px; bottom: -12px; }
+    .btn-play { width: 60px; height: 60px; font-size: 22px; }
+    .btn-sm { width: 44px; height: 44px; font-size: 18px; }
+    .btn-tap { width: 44px; height: 44px; font-size: 11px; }
+    .btn-ts-quick { padding: 5px 10px; font-size: 12px; }
+    .btn-sound { padding: 6px 3px; font-size: 11px; }
+    .btn-tempo-preset { width: 54px; height: 40px; }
+    .btn-tempo-preset .preset-name { font-size: 10px; }
+    .btn-tempo-preset .preset-zh { font-size: 11px; }
+    .btn-tempo-preset .preset-bpm { font-size: 9px; }
+    .footer { font-size: 11px; flex-wrap: wrap; gap: 4px; justify-content: center; }
+    .beat-counter { font-size: 12px; }
+    .hint { font-size: 10px; }
+    .btn-reset { font-size: 10px; padding: 4px 10px; }
   }
 </style>
 </head>
@@ -631,6 +689,33 @@
     <input type="number" class="bpm-value" id="bpmValue" value="80" min="30" max="250" inputmode="numeric">
     <div class="bpm-label">BPM</div>
     <div class="tempo-marking" id="tempoMarking">Andante</div>
+    <div class="tempo-presets" id="tempoPresets">
+      <div class="tempo-presets-row">
+        <button class="btn-tempo-preset" data-bpm="50">
+          <span class="preset-name">Largo</span><span class="preset-zh">广板</span><span class="preset-bpm">40–60</span>
+        </button>
+        <button class="btn-tempo-preset" data-bpm="72">
+          <span class="preset-name">Adagio</span><span class="preset-zh">柔板</span><span class="preset-bpm">66–76</span>
+        </button>
+        <button class="btn-tempo-preset" data-bpm="84">
+          <span class="preset-name">Andante</span><span class="preset-zh">行板</span><span class="preset-bpm">76–108</span>
+        </button>
+        <button class="btn-tempo-preset" data-bpm="108">
+          <span class="preset-name">Moderato</span><span class="preset-zh">中板</span><span class="preset-bpm">108–120</span>
+        </button>
+      </div>
+      <div class="tempo-presets-row">
+        <button class="btn-tempo-preset" data-bpm="132">
+          <span class="preset-name">Allegro</span><span class="preset-zh">快板</span><span class="preset-bpm">120–156</span>
+        </button>
+        <button class="btn-tempo-preset" data-bpm="152">
+          <span class="preset-name">Vivace</span><span class="preset-zh">活板</span><span class="preset-bpm">156–176</span>
+        </button>
+        <button class="btn-tempo-preset" data-bpm="180">
+          <span class="preset-name">Presto</span><span class="preset-zh">急板</span><span class="preset-bpm">168–200</span>
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Beat dots -->
@@ -1433,6 +1518,13 @@
     const btn = e.target.closest('.btn-sound');
     if (!btn) return;
     setSoundType(btn.dataset.sound);
+  });
+
+  // Tempo preset buttons
+  document.getElementById('tempoPresets').addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-tempo-preset');
+    if (!btn) return;
+    setBPM(parseInt(btn.dataset.bpm, 10));
   });
 
   let savedSecondaryGain = 0.6;
