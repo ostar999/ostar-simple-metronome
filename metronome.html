@@ -466,6 +466,12 @@
     color: #fff;
     border-color: var(--text);
   }
+  .btn-sub:disabled {
+    background: #f5f5f3;
+    color: var(--text-muted);
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
 
   /* ── Sound selector ── */
   .sound-row {
@@ -820,12 +826,12 @@
       <button class="btn btn-tap" id="btnTap" style="width:auto;height:auto;padding:6px 14px;font-size:13px;">TAP</button>
     </div>
     <div class="ts-buttons" id="tsButtons">
-      <button class="btn-ts-quick" data-beats="2" data-pattern="strong,weak">2/4</button>
-      <button class="btn-ts-quick" data-beats="3" data-pattern="strong,weak,weak">3/4</button>
-      <button class="btn-ts-quick active" data-beats="4" data-pattern="strong,weak,secondary,weak">4/4</button>
-      <button class="btn-ts-quick" data-beats="3" data-pattern="strong,weak,weak">3/8</button>
-      <button class="btn-ts-quick" data-beats="6" data-pattern="strong,weak,weak,secondary,weak,weak">6/8</button>
-      <button class="btn-ts-quick" data-beats="12" data-pattern="strong,weak,weak,secondary,weak,weak,secondary,weak,weak,secondary,weak,weak">12/8</button>
+      <button class="btn-ts-quick" data-beats="2" data-denom="4" data-pattern="strong,weak">2/4</button>
+      <button class="btn-ts-quick" data-beats="3" data-denom="4" data-pattern="strong,weak,weak">3/4</button>
+      <button class="btn-ts-quick active" data-beats="4" data-denom="4" data-pattern="strong,weak,secondary,weak">4/4</button>
+      <button class="btn-ts-quick" data-beats="3" data-denom="8" data-pattern="strong,weak,weak">3/8</button>
+      <button class="btn-ts-quick" data-beats="6" data-denom="8" data-pattern="strong,weak,weak,secondary,weak,weak">6/8</button>
+      <button class="btn-ts-quick" data-beats="12" data-denom="8" data-pattern="strong,weak,weak,secondary,weak,weak,secondary,weak,weak,secondary,weak,weak">12/8</button>
     </div>
   </div>
 
@@ -833,10 +839,10 @@
   <div class="sub-row">
     <span class="sub-label">音符</span>
     <div class="sub-buttons" id="subButtons">
-      <button class="btn-sub active" data-sub="1">4分</button>
-      <button class="btn-sub" data-sub="2">8分</button>
-      <button class="btn-sub" data-sub="4">16分</button>
-      <button class="btn-sub" data-sub="8">32分</button>
+      <button class="btn-sub active" data-note="4">4分</button>
+      <button class="btn-sub" data-note="8">8分</button>
+      <button class="btn-sub" data-note="16">16分</button>
+      <button class="btn-sub" data-note="32">32分</button>
     </div>
   </div>
 
@@ -907,6 +913,7 @@
   let bpm = 80;
   let beatsPerMeasure = 4;
   let beatStates = ['strong','weak','secondary','weak']; // per-beat state
+  let timeSigDenom = 4; // denominator of time signature (4 or 8)
   let currentBeat = 0;
   let globalBeatCount = 0;
   let isPlaying = false;
@@ -919,7 +926,7 @@
   let gainStrong = 1.0;
   let gainSecondary = 0.6;
   let gainWeak = 0.5;
-  let subdivision = 1; // 1=4分, 2=8分, 4=16分, 8=32分
+  let noteValue = 4; // 4分/8分/16分/32分音符
   let activeTsButton = ACTIVE_TS;
 
   // Tap tempo
@@ -972,7 +979,8 @@
   // ═══════════════════════════════════════════════════════
   // Beat dots UI
   // ═══════════════════════════════════════════════════════
-  function getTotalSteps() { return beatsPerMeasure * subdivision; }
+  function getStepsPerBeat() { return Math.max(1, Math.round(noteValue / timeSigDenom)); }
+  function getTotalSteps() { return beatsPerMeasure * getStepsPerBeat(); }
 
   function renderBeatDots() {
     let html = '';
@@ -1002,7 +1010,8 @@
 
   function updateActiveDot() {
     if (!isPlaying) return;
-    const mainIdx = Math.floor(currentBeat / subdivision);
+    const spb = getStepsPerBeat();
+    const mainIdx = Math.floor(currentBeat / spb);
     $beatRow.querySelectorAll('.beat-dot').forEach((d, i) => {
       d.classList.toggle('active', i === mainIdx);
     });
@@ -1115,7 +1124,7 @@
 
   function nextStep() {
     const total = getTotalSteps();
-    const secondsPerStep = (60.0 / bpm) / subdivision;
+    const secondsPerStep = (60.0 / bpm) / getStepsPerBeat();
     nextNoteTime += secondsPerStep;
     currentBeat = (currentBeat + 1) % total;
     globalBeatCount++;
@@ -1123,8 +1132,9 @@
 
   function scheduleBeat(beatTime, stepIdx) {
     const total = getTotalSteps();
-    const isMain = stepIdx % subdivision === 0;
-    const mainIdx = Math.floor(stepIdx / subdivision);
+    const spb = getStepsPerBeat();
+    const isMain = stepIdx % spb === 0;
+    const mainIdx = Math.floor(stepIdx / spb);
     const mainState = beatStates[mainIdx] || 'weak';
 
     if (mainState !== 'rest') {
@@ -1145,7 +1155,8 @@
   }
 
   function onStepVisual(stepIdx, isMain) {
-    const mainIdx = Math.floor(stepIdx / subdivision);
+    const spb = getStepsPerBeat();
+    const mainIdx = Math.floor(stepIdx / spb);
     $beatRow.querySelectorAll('.beat-dot').forEach((d, i) => {
       d.classList.toggle('active', i === mainIdx && isMain);
     });
@@ -1285,10 +1296,13 @@
   function setTimeSignature(beats, pattern, buttonEl) {
     beatsPerMeasure = beats;
     beatStates = pattern.slice(0, beats);
-    // Pad if needed
-    while (beatStates.length < beats) {
-      beatStates.push('weak');
-    }
+    while (beatStates.length < beats) beatStates.push('weak');
+    // Update denominator
+    const denom = buttonEl ? parseInt(buttonEl.dataset.denom, 10) : 4;
+    timeSigDenom = denom || 4;
+    // Auto-set note value: /4→4分, /8→8分
+    noteValue = timeSigDenom === 8 ? 8 : 4;
+    updateSubUI();
     // Update active button
     $tsButtons.querySelectorAll('.btn-ts-quick').forEach(b => b.classList.remove('active'));
     if (buttonEl) buttonEl.classList.add('active');
@@ -1304,13 +1318,13 @@
   // ═══════════════════════════════════════════════════════
   // Subdivision
   // ═══════════════════════════════════════════════════════
-  function setSubdivision(sub) {
-    sub = parseInt(sub, 10);
-    if (![1,2,4,8].includes(sub)) return;
-    subdivision = sub;
+  function setNoteValue(nv) {
+    nv = parseInt(nv, 10);
+    if (![4,8,16,32].includes(nv)) return;
+    // Reject 4分 in /8 time
+    if (nv === 4 && timeSigDenom === 8) return;
+    noteValue = nv;
     updateSubUI();
-    renderBeatDots();
-    updateActiveDot();
     if (!isPlaying) {
       $beatCounter.textContent = `0 / ${beatsPerMeasure}`;
     }
@@ -1319,7 +1333,14 @@
 
   function updateSubUI() {
     $subButtons.querySelectorAll('.btn-sub').forEach(b => {
-      b.classList.toggle('active', parseInt(b.dataset.sub, 10) === subdivision);
+      const nv = parseInt(b.dataset.note, 10);
+      b.classList.toggle('active', nv === noteValue);
+      // Disable 4分 when in /8 time (quarter note doesn't align with eighth-note beats)
+      if (nv === 4 && timeSigDenom === 8) {
+        b.disabled = true;
+      } else {
+        b.disabled = false;
+      }
     });
   }
 
@@ -1385,7 +1406,8 @@
       gainSecondary,
       gainWeak,
       savedSecondaryGain,
-      subdivision,
+      noteValue,
+      timeSigDenom,
       activeTsButton,
     };
     try {
@@ -1410,7 +1432,8 @@
     gainSecondary = 0.6;
     gainWeak = 0.5;
     savedSecondaryGain = 0.6;
-    subdivision = 1;
+    noteValue = 4;
+    timeSigDenom = 4;
     activeTsButton = '4/4';
 
     // Update UI
@@ -1512,10 +1535,13 @@
         savedSecondaryGain = gainSecondary;
       }
 
-      // Restore subdivision
-      if (typeof s.subdivision === 'number') {
-        subdivision = [1,2,4,8].includes(s.subdivision) ? s.subdivision : 1;
+      // Restore note value & time sig denom
+      if (typeof s.noteValue === 'number') {
+        noteValue = [4,8,16,32].includes(s.noteValue) ? s.noteValue : 4;
         updateSubUI();
+      }
+      if (typeof s.timeSigDenom === 'number') {
+        timeSigDenom = [4,8].includes(s.timeSigDenom) ? s.timeSigDenom : 4;
       }
       if (typeof s.gainWeak === 'number') {
         gainWeak = Math.max(0, Math.min(1, s.gainWeak));
@@ -1619,11 +1645,11 @@
   $gainSecondary.addEventListener('change', handleGainChange);
   $gainWeak.addEventListener('change', handleGainChange);
 
-  // Subdivision buttons
+  // Note value buttons
   $subButtons.addEventListener('click', (e) => {
     const btn = e.target.closest('.btn-sub');
     if (!btn) return;
-    setSubdivision(btn.dataset.sub);
+    setNoteValue(btn.dataset.note);
   });
 
   // Time sig quick buttons
