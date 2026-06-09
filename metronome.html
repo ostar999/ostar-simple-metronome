@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>节拍器</title>
+<style>
+  :root {
+    --bg: #faf9f7;
+    --surface: #ffffff;
+    --text: #2c2c2c;
+    --text-secondary: #8c8c8c;
+    --text-muted: #bfbfbf;
+    --accent: #d4453b;
+    --accent-soft: #fce4e2;
+    --secondary-accent: #e08a3d;
+    --secondary-soft: #fef0e4;
+    --weak: #999;
+    --weak-soft: #f0f0f0;
+    --rest: #ddd;
+    --border: #e8e5e1;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.10);
+    --radius: 14px;
+    --radius-sm: 8px;
+    --radius-full: 999px;
+    --transition: 0.15s ease;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .metronome {
+    width: 520px;
+    max-width: calc(100vw - 24px);
+    background: var(--surface);
+    border-radius: 32px;
+    box-shadow: var(--shadow-lg), var(--shadow-sm);
+    padding: 48px 44px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+  }
+
+  /* ── Header ── */
+  .metronome-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: -8px;
+  }
+  .metronome-author {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+  .metronome-author span {
+    font-weight: 700;
+    color: var(--text);
+  }
+  .metronome-github {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    color: var(--text-secondary);
+    transition: color var(--transition), background var(--transition);
+  }
+  .metronome-github:hover {
+    color: var(--text);
+    background: #f0f0ed;
+  }
+  .metronome-github svg {
+    width: 20px; height: 20px;
+    fill: currentColor;
+  }
+
+  /* ── Pendulum ── */
+  .pendulum-stage {
+    position: relative;
+    width: 220px;
+    height: 190px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .pendulum-pivot {
+    position: absolute;
+    top: 0;
+    width: 10px; height: 10px;
+    background: var(--text);
+    border-radius: 50%;
+    z-index: 2;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
+  .pendulum-arm {
+    position: absolute;
+    top: 5px;
+    width: 2px; height: 140px;
+    background: linear-gradient(to bottom, #555, #999);
+    transform-origin: top center;
+    border-radius: 1px;
+  }
+  .pendulum-weight {
+    position: absolute;
+    top: 110px;
+    width: 30px; height: 38px;
+    background: linear-gradient(135deg, #c4956a, #a0724a);
+    border-radius: 6px;
+    margin-left: -15px; left: 50%;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.3);
+  }
+  .pendulum-weight::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border: 1.5px solid rgba(255,255,255,0.25);
+    border-radius: 3px;
+  }
+  .scale-marks {
+    position: absolute;
+    bottom: 10px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; gap: 12px; z-index: 0;
+  }
+  .scale-mark {
+    width: 1px; height: 10px;
+    background: var(--border);
+    border-radius: 0.5px;
+  }
+  .scale-mark:nth-child(4n+1) { height: 15px; }
+
+  /* ── BPM ── */
+  .bpm-section { text-align: center; line-height: 1; }
+  .bpm-value {
+    font-size: 96px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+    font-family: "SF Mono", "JetBrains Mono", "Fira Code", monospace;
+    width: 230px;
+    text-align: center;
+    border: 2px solid transparent;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    outline: none;
+    padding: 4px 8px;
+    transition: border-color var(--transition), background var(--transition);
+    caret-color: var(--accent);
+  }
+  .bpm-value:hover { background: #fafaf8; }
+  .bpm-value:focus { border-color: var(--text); background: #fafaf8; }
+  .bpm-value::-webkit-outer-spin-button,
+  .bpm-value::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .bpm-value[type=number] { -moz-appearance: textfield; }
+
+  .bpm-label {
+    display: block;
+    font-size: 15px; font-weight: 500;
+    color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.1em;
+    margin-top: 2px;
+  }
+  .tempo-marking {
+    display: block;
+    font-size: 16px; color: var(--text-secondary);
+    margin-top: 5px; font-style: italic;
+    min-height: 22px;
+  }
+
+  /* ── Beat row ── */
+  .beat-section { width: 100%; }
+  .beat-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .beat-dot {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    transition: all var(--transition);
+    position: relative;
+    flex-shrink: 0;
+  }
+  .beat-dot::after {
+    content: attr(data-label);
+    position: absolute;
+    bottom: -19px;
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity var(--transition);
+  }
+  .beat-dot:hover::after { opacity: 1; }
+  .beat-dot:active { transform: scale(0.9); }
+
+  /* beat state styles */
+  .beat-dot.state-strong {
+    background: var(--accent);
+    width: 44px; height: 44px;
+    box-shadow: 0 2px 8px rgba(212,69,59,0.35);
+  }
+  .beat-dot.state-secondary {
+    background: var(--secondary-accent);
+    width: 40px; height: 40px;
+    box-shadow: 0 2px 6px rgba(224,138,61,0.3);
+  }
+  .beat-dot.state-weak {
+    background: var(--weak);
+    width: 36px; height: 36px;
+  }
+  .beat-dot.state-rest {
+    background: transparent;
+    border: 2px dashed var(--rest);
+    color: var(--text-muted);
+    width: 36px; height: 36px;
+  }
+  /* active glow */
+  .beat-dot.active {
+    outline: 3px solid rgba(0,0,0,0.15);
+    outline-offset: 4px;
+  }
+  .beat-dot.state-strong.active {
+    outline-color: rgba(212,69,59,0.4);
+  }
+
+  .beat-legend {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .beat-legend span { display: flex; align-items: center; gap: 4px; }
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .legend-dot.ld-strong { background: var(--accent); }
+  .legend-dot.ld-secondary { background: var(--secondary-accent); }
+  .legend-dot.ld-weak { background: var(--weak); }
+  .legend-dot.ld-rest { background: transparent; border: 1.5px dashed var(--rest); }
+
+  /* ── Slider row ── */
+  .slider-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .slider-row input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    outline: none;
+    cursor: pointer;
+  }
+  .slider-row input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 2px solid var(--text);
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+  }
+  .slider-row input[type="range"]::-webkit-slider-thumb:active {
+    transform: scale(1.12);
+  }
+  .slider-label {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    min-width: 32px;
+    text-align: center;
+  }
+  .slider-val {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    min-width: 36px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    font-family: "SF Mono", "JetBrains Mono", "Fira Code", monospace;
+  }
+
+  /* ── Time sig quick buttons ── */
+  .ts-quick {
+    width: 100%;
+  }
+  .ts-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    letter-spacing: 0.04em;
+  }
+  .ts-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .btn-ts-quick {
+    padding: 8px 16px;
+    font-size: 15px;
+    font-weight: 500;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-full);
+    background: var(--surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: inherit;
+    font-variant-numeric: tabular-nums;
+    transition: all var(--transition);
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-ts-quick:hover {
+    border-color: #ccc;
+    color: var(--text);
+  }
+  .btn-ts-quick.active {
+    background: var(--text);
+    color: #fff;
+    border-color: var(--text);
+  }
+
+  /* ── Sound selector ── */
+  .sound-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sound-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .sound-options {
+    display: flex;
+    gap: 6px;
+    flex: 1;
+  }
+  .btn-sound {
+    flex: 1;
+    padding: 10px 6px;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all var(--transition);
+    outline: none;
+    text-align: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-sound:hover { border-color: #ccc; color: var(--text); }
+  .btn-sound.active {
+    background: var(--text);
+    color: #fff;
+    border-color: var(--text);
+  }
+
+  /* ── Toggle switch ── */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+  .toggle-track {
+    width: 44px; height: 26px;
+    border-radius: 13px;
+    background: var(--border);
+    cursor: pointer;
+    position: relative;
+    transition: background var(--transition);
+    flex-shrink: 0;
+  }
+  .toggle-track.on {
+    background: var(--accent);
+  }
+  .toggle-thumb {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    position: absolute;
+    top: 2px; left: 2px;
+    transition: transform var(--transition);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+  .toggle-track.on .toggle-thumb {
+    transform: translateX(18px);
+  }
+
+  /* ── Gain inputs ── */
+  .gain-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+  }
+  .gain-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    margin-right: 2px;
+  }
+  .gain-item {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .gain-tag {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+  .gain-item input[type="number"] {
+    width: 48px;
+    padding: 5px 2px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: "SF Mono", "JetBrains Mono", "Fira Code", monospace;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    outline: none;
+    transition: border-color var(--transition);
+    -moz-appearance: textfield;
+  }
+  .gain-item input[type="number"]::-webkit-outer-spin-button,
+  .gain-item input[type="number"]::-webkit-inner-spin-button {
+    display: none;
+  }
+  .gain-item input[type="number"]:focus {
+    border-color: var(--text);
+  }
+  .gain-item input[type="number"]:disabled {
+    background: #f5f5f3;
+    color: var(--text-muted);
+    cursor: not-allowed;
+  }
+
+  .gain-toggle {
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  /* ── Main controls ── */
+  .main-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    justify-content: center;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    transition: all var(--transition);
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:active { transform: scale(0.96); background: #f5f5f3; }
+  .btn-play {
+    width: 84px; height: 84px;
+    border-radius: 50%;
+    font-size: 30px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 4px 18px rgba(212,69,59,0.35);
+    flex-shrink: 0;
+  }
+  .btn-play:active { transform: scale(0.94); box-shadow: 0 2px 8px rgba(212,69,59,0.3); }
+  .btn-play.playing { background: #2c2c2c; box-shadow: 0 4px 18px rgba(0,0,0,0.2); }
+  .btn-sm {
+    width: 56px; height: 56px;
+    font-size: 24px; font-weight: 400;
+  }
+  .btn-tap {
+    width: 56px; height: 56px;
+    font-size: 14px; font-weight: 600;
+    letter-spacing: 0.03em;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+  .beat-counter {
+    font-variant-numeric: tabular-nums;
+    font-family: "SF Mono", "JetBrains Mono", "Fira Code", monospace;
+    font-size: 16px;
+  }
+  .hint { color: var(--text-muted); font-size: 13px; }
+  .btn-reset {
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-full);
+    background: var(--surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all var(--transition);
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-reset:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-reset:active { transform: scale(0.95); background: var(--accent-soft); }
+
+  /* ── Divider ── */
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: var(--border);
+    margin: -4px 0;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 540px) {
+    .metronome { width: calc(100vw - 24px); padding: 30px 20px 24px; gap: 22px; border-radius: 24px; }
+    .bpm-value { font-size: 64px; width: 160px; }
+    .pendulum-stage { width: 170px; height: 150px; }
+    .pendulum-arm { height: 115px; }
+    .pendulum-weight { top: 90px; width: 24px; height: 30px; margin-left: -12px; }
+    .beat-dot { width: 30px; height: 30px; font-size: 12px; }
+    .beat-dot.state-strong { width: 34px; height: 34px; }
+    .beat-dot.state-secondary { width: 30px; height: 30px; }
+    .beat-dot.state-weak,
+    .beat-dot.state-rest { width: 26px; height: 26px; }
+    .beat-dot::after { font-size: 9px; bottom: -14px; }
+    .btn-play { width: 68px; height: 68px; font-size: 26px; }
+    .btn-sm { width: 48px; height: 48px; font-size: 20px; }
+    .btn-tap { width: 48px; height: 48px; font-size: 13px; }
+    .btn-ts-quick { padding: 6px 12px; font-size: 13px; }
+    .btn-sound { padding: 8px 4px; font-size: 12px; }
+    .footer { font-size: 12px; flex-wrap: wrap; gap: 6px; justify-content: center; }
+    .beat-counter { font-size: 14px; }
+    .hint { font-size: 11px; }
+    .btn-reset { font-size: 11px; padding: 5px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="metronome">
+  <!-- Header -->
+  <div class="metronome-header">
+    <div class="metronome-author"><span>欧星星</span> ostar</div>
+    <a class="metronome-github" href="https://github.com/ostar999/ostar-simple-metronome" target="_blank" rel="noopener" title="GitHub">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+    </a>
+  </div>
+
+  <!-- Pendulum -->
+  <div class="pendulum-stage">
+    <div class="pendulum-pivot"></div>
+    <div class="pendulum-arm" id="pendulumArm"></div>
+    <div class="pendulum-weight"></div>
+    <div class="scale-marks" id="scaleMarks"></div>
+  </div>
+
+  <!-- BPM -->
+  <div class="bpm-section">
+    <input type="number" class="bpm-value" id="bpmValue" value="80" min="30" max="250" inputmode="numeric">
+    <div class="bpm-label">BPM</div>
+    <div class="tempo-marking" id="tempoMarking">Andante</div>
+  </div>
+
+  <!-- Beat dots -->
+  <div class="beat-section">
+    <div class="beat-row" id="beatRow"></div>
+    <div class="beat-legend">
+      <span><span class="legend-dot ld-strong"></span>强</span>
+      <span><span class="legend-dot ld-secondary"></span>次强</span>
+      <span><span class="legend-dot ld-weak"></span>弱</span>
+      <span><span class="legend-dot ld-rest"></span>休止</span>
+    </div>
+  </div>
+
+  <!-- Gain inputs -->
+  <div class="gain-row">
+    <span class="gain-label">强度</span>
+    <div class="gain-item">
+      <span class="gain-tag">强</span>
+      <input type="number" id="gainStrong" value="1.0" min="0" max="1" step="0.1">
+    </div>
+    <div class="gain-item">
+      <span class="gain-tag">次强</span>
+      <input type="number" id="gainSecondary" value="0.6" min="0" max="1" step="0.1">
+    </div>
+    <div class="gain-item">
+      <span class="gain-tag">弱</span>
+      <input type="number" id="gainWeak" value="0.5" min="0" max="1" step="0.1">
+    </div>
+    <div class="toggle-row gain-toggle">
+      <span>突出次强</span>
+      <div class="toggle-track on" id="toggleSecondary">
+        <div class="toggle-thumb"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BPM slider -->
+  <div class="slider-row">
+    <span class="slider-val">30</span>
+    <input type="range" id="bpmSlider" min="30" max="250" value="80" step="1">
+    <span class="slider-val">250</span>
+  </div>
+
+  <!-- Time signature quick -->
+  <div class="ts-quick">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <span class="ts-label" style="margin-bottom:0;">拍号</span>
+      <button class="btn btn-tap" id="btnTap" style="width:auto;height:auto;padding:6px 14px;font-size:13px;">TAP</button>
+    </div>
+    <div class="ts-buttons" id="tsButtons">
+      <button class="btn-ts-quick" data-beats="2" data-pattern="strong,weak">2/4</button>
+      <button class="btn-ts-quick" data-beats="3" data-pattern="strong,weak,weak">3/4</button>
+      <button class="btn-ts-quick active" data-beats="4" data-pattern="strong,weak,secondary,weak">4/4</button>
+      <button class="btn-ts-quick" data-beats="3" data-pattern="strong,weak,weak">3/8</button>
+      <button class="btn-ts-quick" data-beats="6" data-pattern="strong,weak,weak,secondary,weak,weak">6/8</button>
+      <button class="btn-ts-quick" data-beats="12" data-pattern="strong,weak,weak,secondary,weak,weak,secondary,weak,weak,secondary,weak,weak">12/8</button>
+    </div>
+  </div>
+
+  <!-- Sound + Volume -->
+  <div class="sound-row">
+    <span class="sound-label">音色</span>
+    <div class="sound-options" id="soundOptions">
+      <button class="btn-sound active" data-sound="classic">经典</button>
+      <button class="btn-sound" data-sound="wood">木鱼</button>
+      <button class="btn-sound" data-sound="digital">电子</button>
+      <button class="btn-sound" data-sound="clave">响棒</button>
+    </div>
+  </div>
+  <div class="slider-row">
+    <span class="slider-label">🔈</span>
+    <input type="range" id="volumeSlider" min="0" max="100" value="80" step="1">
+    <span class="slider-label">🔊</span>
+    <span class="slider-val" id="volumeVal">80</span>
+  </div>
+
+  <!-- Main controls -->
+  <div class="main-controls">
+    <button class="btn btn-sm" id="btnMinus" aria-label="减速">−</button>
+    <button class="btn btn-play" id="btnPlay" aria-label="播放/暂停">
+      <span id="playIcon">▶</span>
+    </button>
+    <button class="btn btn-sm" id="btnPlus" aria-label="加速">+</button>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span class="beat-counter" id="beatCounter">0 / 4</span>
+    <button class="btn-reset" id="btnReset">↺ 重置</button>
+    <span class="hint">Space 启停</span>
+  </div>
+</div>
+
+<script>
+(function() {
+  // ═══════════════════════════════════════════════════════
+  // Constants
+  // ═══════════════════════════════════════════════════════
+  const STORAGE_KEY = 'metronome_settings_v2';
+
+  const BEAT_STATES = ['strong', 'secondary', 'weak', 'rest'];
+  const BEAT_LABELS = { strong: '强', secondary: '次', weak: '弱', rest: '休' };
+
+  const DEFAULT_PATTERNS = {
+    '2/4':  ['strong','weak'],
+    '3/4':  ['strong','weak','weak'],
+    '4/4':  ['strong','weak','secondary','weak'],
+    '3/8':  ['strong','weak','weak'],
+    '6/8':  ['strong','weak','weak','secondary','weak','weak'],
+    '12/8': ['strong','weak','weak','secondary','weak','weak','secondary','weak','weak','secondary','weak','weak'],
+  };
+
+  const SOUND_TYPES = ['classic', 'wood', 'digital', 'clave'];
+  const SOUND_LABELS = { classic: '经典', wood: '木鱼', digital: '电子', clave: '响棒' };
+  const ACTIVE_TS = '4/4'; // default
+
+  const MAX_BEATS = 16;
+
+  // ═══════════════════════════════════════════════════════
+  // State
+  // ═══════════════════════════════════════════════════════
+  let audioCtx = null;
+  let masterGain = null;
+  let bpm = 80;
+  let beatsPerMeasure = 4;
+  let beatStates = ['strong','weak','secondary','weak']; // per-beat state
+  let currentBeat = 0;
+  let globalBeatCount = 0;
+  let isPlaying = false;
+  let nextNoteTime = 0;
+  let schedulerTimer = null;
+  let animationId = null;
+  let soundType = 'classic';
+  let volume = 0.8;
+  let emphasizeSecondary = true;
+  let gainStrong = 1.0;
+  let gainSecondary = 0.6;
+  let gainWeak = 0.5;
+  let activeTsButton = ACTIVE_TS;
+
+  // Tap tempo
+  let tapTimes = [];
+  const TAP_WINDOW_MS = 2000;
+  const MAX_TAP_SAMPLES = 8;
+
+  // Pendulum
+  let lastBeatTime = 0;
+  let pendulumAngle = 20;
+  const MAX_ANGLE = 20;
+
+  // ═══════════════════════════════════════════════════════
+  // DOM refs
+  // ═══════════════════════════════════════════════════════
+  const $bpmValue    = document.getElementById('bpmValue');
+  const $tempoMarking= document.getElementById('tempoMarking');
+  const $beatRow     = document.getElementById('beatRow');
+  const $bpmSlider   = document.getElementById('bpmSlider');
+  const $btnPlay     = document.getElementById('btnPlay');
+  const $playIcon    = document.getElementById('playIcon');
+  const $btnMinus    = document.getElementById('btnMinus');
+  const $btnPlus     = document.getElementById('btnPlus');
+  const $btnTap      = document.getElementById('btnTap');
+  const $beatCounter = document.getElementById('beatCounter');
+  const $pendulumArm = document.getElementById('pendulumArm');
+  const $scaleMarks  = document.getElementById('scaleMarks');
+  const $tsButtons   = document.getElementById('tsButtons');
+  const $soundOptions= document.getElementById('soundOptions');
+  const $volumeSlider= document.getElementById('volumeSlider');
+  const $volumeVal   = document.getElementById('volumeVal');
+  const $toggleSecondary = document.getElementById('toggleSecondary');
+  const $gainStrong     = document.getElementById('gainStrong');
+  const $gainSecondary  = document.getElementById('gainSecondary');
+  const $gainWeak       = document.getElementById('gainWeak');
+  const $btnReset    = document.getElementById('btnReset');
+
+  // ═══════════════════════════════════════════════════════
+  // Scale marks
+  // ═══════════════════════════════════════════════════════
+  function buildScaleMarks() {
+    let html = '';
+    for (let i = 0; i < 17; i++) {
+      html += '<div class="scale-mark"></div>';
+    }
+    $scaleMarks.innerHTML = html;
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // Beat dots UI
+  // ═══════════════════════════════════════════════════════
+  function renderBeatDots() {
+    let html = '';
+    for (let i = 0; i < beatsPerMeasure; i++) {
+      const state = beatStates[i] || 'weak';
+      html += `<div class="beat-dot state-${state}" data-idx="${i}" data-label="${BEAT_LABELS[state]}" title="点击切换: ${BEAT_LABELS[state]}">${i+1}</div>`;
+    }
+    $beatRow.innerHTML = html;
+
+    // Bind click to cycle state
+    $beatRow.querySelectorAll('.beat-dot').forEach(dot => {
+      dot.addEventListener('click', () => {
+        const idx = parseInt(dot.dataset.idx, 10);
+        cycleBeatState(idx);
+      });
+    });
+  }
+
+  function cycleBeatState(idx) {
+    const currentState = beatStates[idx] || 'weak';
+    const currentIdx = BEAT_STATES.indexOf(currentState);
+    const nextIdx = (currentIdx + 1) % BEAT_STATES.length;
+    beatStates[idx] = BEAT_STATES[nextIdx];
+    renderBeatDots();
+    updateActiveDot();
+    saveSettings();
+  }
+
+  function updateActiveDot() {
+    const dots = $beatRow.querySelectorAll('.beat-dot');
+    dots.forEach((d, i) => {
+      d.classList.toggle('active', isPlaying && i === currentBeat);
+    });
+  }
+
+  function clearActiveDots() {
+    $beatRow.querySelectorAll('.beat-dot').forEach(d => d.classList.remove('active'));
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // Tempo marking
+  // ═══════════════════════════════════════════════════════
+  function getTempoMarking(b) {
+    if (b <= 39)  return 'Grave';
+    if (b <= 59)  return 'Largo';
+    if (b <= 65)  return 'Larghetto';
+    if (b <= 75)  return 'Adagio';
+    if (b <= 79)  return 'Andante';
+    if (b <= 89)  return 'Andantino';
+    if (b <= 99)  return 'Moderato';
+    if (b <= 109) return 'Allegretto';
+    if (b <= 132) return 'Allegro';
+    if (b <= 159) return 'Vivace';
+    if (b <= 179) return 'Presto';
+    return 'Prestissimo';
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // Sound synthesis
+  // ═══════════════════════════════════════════════════════
+  function createClickBuffer(gain, sound) {
+    const ctx = audioCtx;
+    const sampleRate = ctx.sampleRate;
+    const duration = 0.04;
+    const length = Math.floor(sampleRate * duration);
+    const buffer = ctx.createBuffer(1, length, sampleRate);
+    const data = buffer.getChannelData(0);
+    const amp = gain;
+
+    switch (sound) {
+      case 'wood':
+        // Low, resonant wood block
+        for (let i = 0; i < length; i++) {
+          const t = i / sampleRate;
+          const env = Math.exp(-t * 60);
+          const tone1 = Math.sin(2 * Math.PI * 500 * t);
+          const tone2 = Math.sin(2 * Math.PI * 800 * t) * 0.3;
+          data[i] = (tone1 + tone2) * env * amp;
+        }
+        break;
+      case 'digital':
+        // Clean sine beep
+        for (let i = 0; i < length; i++) {
+          const t = i / sampleRate;
+          const env = Math.exp(-t * 80);
+          const tone = Math.sin(2 * Math.PI * 1200 * t);
+          data[i] = tone * env * amp * 0.8;
+        }
+        break;
+      case 'clave':
+        // Bright, short, very percussive
+        for (let i = 0; i < length; i++) {
+          const t = i / sampleRate;
+          const env = Math.exp(-t * 200);
+          const tone = Math.sin(2 * Math.PI * 2200 * t);
+          const noise = (Math.random() * 2 - 1) * 0.15;
+          data[i] = (tone + noise) * env * amp * 0.7;
+        }
+        break;
+      case 'classic':
+      default:
+        // Classic click: sine + noise + thump
+        for (let i = 0; i < length; i++) {
+          const t = i / sampleRate;
+          const env = Math.exp(-t * 120);
+          const tone = Math.sin(2 * Math.PI * 950 * t);
+          const noise = (Math.random() * 2 - 1) * 0.25;
+          const thump = Math.sin(2 * Math.PI * 180 * t) * Math.exp(-t * 200) * 0.5;
+          data[i] = (tone + noise + thump) * env * amp;
+        }
+        break;
+    }
+    return buffer;
+  }
+
+  function playClick(time, gain, sound) {
+    if (!audioCtx || !masterGain) return;
+    const buffer = createClickBuffer(gain, sound);
+    const src = audioCtx.createBufferSource();
+    src.buffer = buffer;
+    src.connect(masterGain);
+    src.start(time);
+  }
+
+  function getBeatGain(state) {
+    // Returns amplitude based on beat state, custom gains, and emphasizeSecondary setting
+    switch (state) {
+      case 'strong':    return gainStrong;
+      case 'secondary': return emphasizeSecondary ? gainSecondary : gainWeak;
+      case 'weak':      return gainWeak;
+      default:          return 0;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // Scheduler
+  // ═══════════════════════════════════════════════════════
+  const SCHEDULE_AHEAD = 0.1;
+  const LOOK_AHEAD_MS = 20;
+
+  function nextBeat() {
+    const secondsPerBeat = 60.0 / bpm;
+    nextNoteTime += secondsPerBeat;
+    currentBeat = (currentBeat + 1) % beatsPerMeasure;
+    globalBeatCount++;
+  }
+
+  function scheduleBeat(beatTime, beatIdx) {
+    const state = beatStates[beatIdx] || 'weak';
+    if (state !== 'rest') {
+      playClick(beatTime, getBeatGain(state), soundType);
+    }
+    scheduleVisualUpdate(beatTime, beatIdx);
+  }
+
+  function scheduleVisualUpdate(beatTime, beatIdx) {
+    const now = audioCtx.currentTime;
+    const delay = Math.max(0, (beatTime - now) * 1000);
+    setTimeout(() => onBeatVisual(beatIdx), delay);
+  }
+
+  function onBeatVisual(beatIdx) {
+    $beatRow.querySelectorAll('.beat-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === beatIdx);
+    });
+    $beatCounter.textContent = `${beatIdx + 1} / ${beatsPerMeasure}`;
+    pendulumAngle = -pendulumAngle;
+    lastBeatTime = performance.now();
+  }
+
+  function scheduler() {
+    if (!isPlaying) return;
+    while (nextNoteTime < audioCtx.currentTime + SCHEDULE_AHEAD) {
+      scheduleBeat(nextNoteTime, currentBeat);
+      nextBeat();
+    }
+    schedulerTimer = setTimeout(scheduler, LOOK_AHEAD_MS);
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // Pendulum animation
+  // ═══════════════════════════════════════════════════════
+  function animatePendulum() {
+    if (!isPlaying) {
+      const current = parseFloat(
+        ($pendulumArm.style.transform || 'rotate(0deg)').replace('rotate(','').replace('deg)','')
+      ) || 0;
+      if (Math.abs(current) < 0.3) {
+        $pendulumArm.style.transition = 'transform 0.4s ease-out';
+        $pendulumArm.style.transform = 'rotate(0deg)';
+        animationId = null;
+        return;
+      }
+      $pendulumArm.style.transition = 'none';
+      $pendulumArm.style.transform = `rotate(${current * 0.85}deg)`;
+      animationId = requestAnimationFrame(animatePendulum);
+      return;
+    }
+
+    const now = performance.now();
+    const elapsed = (now - lastBeatTime) / 1000;
+    const beatDuration = 60.0 / bpm;
+    const progress = Math.min(elapsed / beatDuration, 1);
+    const prevAngle = -pendulumAngle;
+    const currentAngle = prevAngle + (pendulumAngle - prevAngle) * (0.5 - 0.5 * Math.cos(Math.PI * progress));
+
+    $pendulumArm.style.transition = 'none';
+    $pendulumArm.style.transform = `rotate(${currentAngle}deg)`;
+    animationId = requestAnimationFrame(animatePendulum);
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // Start / Stop
+  // ═══════════════════════════════════════════════════════
+  function start() {
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = volume;
+      masterGain.connect(audioCtx.destination);
+    } else {
+      // Ensure gain node exists
+      if (!masterGain) {
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = volume;
+        masterGain.connect(audioCtx.destination);
+      }
+    }
+
+    isPlaying = true;
+    $btnPlay.classList.add('playing');
+    $playIcon.textContent = '⏸';
+    currentBeat = 0;
+    globalBeatCount = 0;
+    nextNoteTime = audioCtx.currentTime + 0.05;
+    pendulumAngle = MAX_ANGLE;
+    lastBeatTime = performance.now();
+
+    updateActiveDot();
+    $beatCounter.textContent = `1 / ${beatsPerMeasure}`;
+    $pendulumArm.style.transform = `rotate(${MAX_ANGLE}deg)`;
+
+    scheduler();
+    if (!animationId) {
+      animationId = requestAnimationFrame(animatePendulum);
+    }
+  }
+
+  function stop() {
+    isPlaying = false;
+    $btnPlay.classList.remove('playing');
+    $playIcon.textContent = '▶';
+    clearTimeout(schedulerTimer);
+    schedulerTimer = null;
+    currentBeat = 0;
+    globalBeatCount = 0;
+    clearActiveDots();
+    $beatCounter.textContent = `0 / ${beatsPerMeasure}`;
+    if (!animationId) {
+      animationId = requestAnimationFrame(animatePendulum);
+    }
+  }
+
+  function togglePlay() {
+    isPlaying ? stop() : start();
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // BPM controls
+  // ═══════════════════════════════════════════════════════
+  function setBPM(newBpm, source) {
+    newBpm = Math.max(30, Math.min(250, newBpm));
+    if (bpm === newBpm && source !== 'input') return;
+    bpm = newBpm;
+    $bpmValue.value = bpm;
+    $tempoMarking.textContent = getTempoMarking(bpm);
+    if (source !== 'slider') $bpmSlider.value = bpm;
+    saveSettings();
+  }
+
+  function handleBpmInput() {
+    let val = parseInt($bpmValue.value, 10);
+    if (isNaN(val) || val < 30) val = 30;
+    if (val > 250) val = 250;
+    $bpmValue.value = val;
+    setBPM(val, 'input');
+  }
+
+  function changeBPM(delta) {
+    setBPM(bpm + delta);
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // Time signature
+  // ═══════════════════════════════════════════════════════
+  function setTimeSignature(beats, pattern, buttonEl) {
+    beatsPerMeasure = beats;
+    beatStates = pattern.slice(0, beats);
+    // Pad if needed
+    while (beatStates.length < beats) {
+      beatStates.push('weak');
+    }
+    // Update active button
+    $tsButtons.querySelectorAll('.btn-ts-quick').forEach(b => b.classList.remove('active'));
+    if (buttonEl) buttonEl.classList.add('active');
+    activeTsButton = buttonEl ? buttonEl.textContent : null;
+    renderBeatDots();
+    updateActiveDot();
+    if (!isPlaying) {
+      $beatCounter.textContent = `0 / ${beatsPerMeasure}`;
+    }
+    saveSettings();
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // Sound type
+  // ═══════════════════════════════════════════════════════
+  function setSoundType(type) {
+    soundType = type;
+    $soundOptions.querySelectorAll('.btn-sound').forEach(b => {
+      b.classList.toggle('active', b.dataset.sound === type);
+    });
+    saveSettings();
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // Volume
+  // ═══════════════════════════════════════════════════════
+  function setVolume(val) {
+    volume = val / 100;
+    $volumeSlider.value = val;
+    $volumeVal.textContent = val;
+    if (masterGain) {
+      masterGain.gain.value = volume;
+    }
+    saveSettings();
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // Tap tempo
+  // ═══════════════════════════════════════════════════════
+  function handleTap() {
+    const now = Date.now();
+    tapTimes = tapTimes.filter(t => now - t < TAP_WINDOW_MS);
+    tapTimes.push(now);
+    if (tapTimes.length > MAX_TAP_SAMPLES) tapTimes.shift();
+
+    if (tapTimes.length >= 2) {
+      let totalInterval = 0;
+      for (let i = 1; i < tapTimes.length; i++) {
+        totalInterval += tapTimes[i] - tapTimes[i - 1];
+      }
+      const avgMs = totalInterval / (tapTimes.length - 1);
+      const tappedBpm = Math.round(60000 / avgMs);
+      setBPM(Math.max(30, Math.min(250, tappedBpm)));
+    }
+
+    $btnTap.style.background = 'var(--accent-soft)';
+    setTimeout(() => { $btnTap.style.background = ''; }, 120);
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // Persistence (localStorage)
+  // ═══════════════════════════════════════════════════════
+  function saveSettings() {
+    const settings = {
+      bpm,
+      beatsPerMeasure,
+      beatStates: beatStates.slice(0, beatsPerMeasure),
+      soundType,
+      volume: Math.round(volume * 100),
+      emphasizeSecondary,
+      gainStrong,
+      gainSecondary,
+      gainWeak,
+      savedSecondaryGain,
+      activeTsButton,
+    };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    } catch (e) {
+      // localStorage not available
+    }
+  }
+
+  function resetToDefaults() {
+    // Stop playback if running
+    if (isPlaying) stop();
+
+    // Reset all state to defaults
+    bpm = 80;
+    beatsPerMeasure = 4;
+    beatStates = ['strong','weak','secondary','weak'];
+    soundType = 'classic';
+    volume = 0.8;
+    emphasizeSecondary = true;
+    gainStrong = 1.0;
+    gainSecondary = 0.6;
+    gainWeak = 0.5;
+    savedSecondaryGain = 0.6;
+    activeTsButton = '4/4';
+
+    // Update UI
+    $bpmValue.value = bpm;
+    $bpmSlider.value = bpm;
+    $tempoMarking.textContent = getTempoMarking(bpm);
+    $volumeSlider.value = 80;
+    $volumeVal.textContent = '80';
+    if (masterGain) masterGain.gain.value = 0.8;
+    renderBeatDots();
+    clearActiveDots();
+    $beatCounter.textContent = `0 / ${beatsPerMeasure}`;
+
+    // Update TS buttons
+    $tsButtons.querySelectorAll('.btn-ts-quick').forEach(b => {
+      b.classList.toggle('active', b.textContent === '4/4');
+    });
+
+    // Update sound buttons
+    $soundOptions.querySelectorAll('.btn-sound').forEach(b => {
+      b.classList.toggle('active', b.dataset.sound === 'classic');
+    });
+
+    // Update toggle
+    $toggleSecondary.classList.toggle('on', true);
+    $gainSecondary.disabled = false;
+
+    // Update gain inputs
+    $gainStrong.value = '1.0';
+    $gainSecondary.value = '0.6';
+    $gainWeak.value = '0.5';
+
+    // Clear localStorage
+    try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+
+    // Tap tempo reset
+    tapTimes = [];
+  }
+
+  function loadSettings() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return false;
+      const s = JSON.parse(raw);
+
+      // Restore BPM
+      if (typeof s.bpm === 'number') {
+        bpm = Math.max(30, Math.min(250, s.bpm));
+        $bpmValue.value = bpm;
+        $bpmSlider.value = bpm;
+        $tempoMarking.textContent = getTempoMarking(bpm);
+      }
+
+      // Restore beat settings
+      if (typeof s.beatsPerMeasure === 'number' && Array.isArray(s.beatStates)) {
+        beatsPerMeasure = Math.max(1, Math.min(MAX_BEATS, s.beatsPerMeasure));
+        beatStates = s.beatStates.slice(0, beatsPerMeasure);
+        while (beatStates.length < beatsPerMeasure) beatStates.push('weak');
+        // Validate states
+        beatStates = beatStates.map(st => BEAT_STATES.includes(st) ? st : 'weak');
+      }
+
+      // Restore sound
+      if (typeof s.soundType === 'string' && SOUND_TYPES.includes(s.soundType)) {
+        soundType = s.soundType;
+      }
+
+      // Restore volume
+      if (typeof s.volume === 'number') {
+        volume = Math.max(0, Math.min(1, s.volume / 100));
+        $volumeSlider.value = Math.round(volume * 100);
+        $volumeVal.textContent = Math.round(volume * 100);
+      }
+
+      // Restore emphasizeSecondary
+      if (typeof s.emphasizeSecondary === 'boolean') {
+        emphasizeSecondary = s.emphasizeSecondary;
+        $toggleSecondary.classList.toggle('on', emphasizeSecondary);
+        if (!emphasizeSecondary) {
+          $gainSecondary.disabled = true;
+        }
+      }
+
+      // Restore gain levels
+      if (typeof s.gainStrong === 'number') {
+        gainStrong = Math.max(0, Math.min(1, s.gainStrong));
+        $gainStrong.value = gainStrong.toFixed(1);
+      }
+      if (typeof s.gainSecondary === 'number') {
+        gainSecondary = Math.max(0, Math.min(1, s.gainSecondary));
+        $gainSecondary.value = gainSecondary.toFixed(1);
+      }
+      if (typeof s.savedSecondaryGain === 'number') {
+        savedSecondaryGain = Math.max(0, Math.min(1, s.savedSecondaryGain));
+      } else if (typeof s.gainSecondary === 'number') {
+        savedSecondaryGain = gainSecondary;
+      }
+      if (typeof s.gainWeak === 'number') {
+        gainWeak = Math.max(0, Math.min(1, s.gainWeak));
+        $gainWeak.value = gainWeak.toFixed(1);
+      }
+
+      // Activate matching TS button
+      if (s.activeTsButton) {
+        const btn = Array.from($tsButtons.querySelectorAll('.btn-ts-quick'))
+          .find(b => b.textContent === s.activeTsButton);
+        if (btn) {
+          $tsButtons.querySelectorAll('.btn-ts-quick').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          activeTsButton = s.activeTsButton;
+        }
+      }
+
+      // Update UI to match loaded state
+      renderBeatDots();
+      updateSoundUI();
+      updateTsUI();
+      $beatCounter.textContent = `0 / ${beatsPerMeasure}`;
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function updateSoundUI() {
+    $soundOptions.querySelectorAll('.btn-sound').forEach(b => {
+      b.classList.toggle('active', b.dataset.sound === soundType);
+    });
+  }
+
+  function updateTsUI() {
+    if (!activeTsButton) return;
+    $tsButtons.querySelectorAll('.btn-ts-quick').forEach(b => {
+      b.classList.toggle('active', b.textContent === activeTsButton);
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // Keyboard
+  // ═══════════════════════════════════════════════════════
+  function handleKeydown(e) {
+    if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
+      if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+      return;
+    }
+    if (e.target.tagName === 'INPUT') return;
+
+    switch (e.code) {
+      case 'Space': e.preventDefault(); togglePlay(); break;
+      case 'ArrowUp': e.preventDefault(); changeBPM(1); break;
+      case 'ArrowDown': e.preventDefault(); changeBPM(-1); break;
+      case 'ArrowRight': e.preventDefault(); changeBPM(e.shiftKey ? 10 : 1); break;
+      case 'ArrowLeft': e.preventDefault(); changeBPM(e.shiftKey ? -10 : -1); break;
+      case 'KeyT': if (!e.metaKey && !e.ctrlKey) { e.preventDefault(); handleTap(); } break;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // Event bindings
+  // ═══════════════════════════════════════════════════════
+  $btnPlay.addEventListener('click', togglePlay);
+  $btnMinus.addEventListener('click', () => changeBPM(-1));
+  $btnPlus.addEventListener('click', () => changeBPM(1));
+  $btnTap.addEventListener('click', handleTap);
+
+  $bpmSlider.addEventListener('input', () => {
+    setBPM(parseInt($bpmSlider.value, 10), 'slider');
+  });
+
+  $bpmValue.addEventListener('change', handleBpmInput);
+  $bpmValue.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); $bpmValue.blur(); }
+  });
+
+  $volumeSlider.addEventListener('input', () => {
+    setVolume(parseInt($volumeSlider.value, 10));
+  });
+
+  function handleGainChange() {
+    let val = parseFloat($gainStrong.value);
+    gainStrong = isNaN(val) ? 1.0 : Math.max(0, Math.min(1, val));
+    $gainStrong.value = gainStrong.toFixed(1);
+
+    val = parseFloat($gainSecondary.value);
+    gainSecondary = isNaN(val) ? 0.6 : Math.max(0, Math.min(1, val));
+    $gainSecondary.value = gainSecondary.toFixed(1);
+    savedSecondaryGain = gainSecondary;
+
+    val = parseFloat($gainWeak.value);
+    gainWeak = isNaN(val) ? 0.5 : Math.max(0, Math.min(1, val));
+    $gainWeak.value = gainWeak.toFixed(1);
+
+    saveSettings();
+  }
+
+  $gainStrong.addEventListener('change', handleGainChange);
+  $gainSecondary.addEventListener('change', handleGainChange);
+  $gainWeak.addEventListener('change', handleGainChange);
+
+  // Time sig quick buttons
+  $tsButtons.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-ts-quick');
+    if (!btn) return;
+    const beats = parseInt(btn.dataset.beats, 10);
+    const pattern = btn.dataset.pattern.split(',');
+    setTimeSignature(beats, pattern, btn);
+  });
+
+  // Sound buttons
+  $soundOptions.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-sound');
+    if (!btn) return;
+    setSoundType(btn.dataset.sound);
+  });
+
+  let savedSecondaryGain = 0.6;
+
+  $toggleSecondary.addEventListener('click', () => {
+    emphasizeSecondary = !emphasizeSecondary;
+    $toggleSecondary.classList.toggle('on', emphasizeSecondary);
+    if (!emphasizeSecondary) {
+      savedSecondaryGain = gainSecondary;
+      gainSecondary = gainWeak;
+      $gainSecondary.value = gainWeak.toFixed(1);
+      $gainSecondary.disabled = true;
+    } else {
+      gainSecondary = savedSecondaryGain;
+      $gainSecondary.value = savedSecondaryGain.toFixed(1);
+      $gainSecondary.disabled = false;
+    }
+    saveSettings();
+  });
+
+  $btnReset.addEventListener('click', resetToDefaults);
+
+  document.addEventListener('keydown', handleKeydown);
+
+  // ═══════════════════════════════════════════════════════
+  // Init
+  // ═══════════════════════════════════════════════════════
+  buildScaleMarks();
+  loadSettings();  // loads saved state & renders beat dots
+  renderBeatDots(); // ensure rendered (in case loadSettings didn't)
+  $pendulumArm.style.transform = 'rotate(0deg)';
+})();
+</script>
+</body>
+</html>
