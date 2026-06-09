@@ -28,6 +28,39 @@
     --transition: 0.15s ease;
   }
 
+  [data-theme="dark"] {
+    --bg: #1a1a1c;
+    --surface: #252528;
+    --text: #e8e8ea;
+    --text-secondary: #e8e8ea;
+    --text-muted: #d0d0d6;
+    --accent: #e0554b;
+    --accent-soft: #3a2020;
+    --secondary-accent: #d48540;
+    --secondary-soft: #3a2a1a;
+    --weak: #6a6a6e;
+    --weak-soft: #2a2a2e;
+    --rest: #4a4a4e;
+    --border: #3a3a3e;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.35);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.4);
+    color-scheme: dark;
+  }
+  [data-theme="dark"] .bpm-value:hover,
+  [data-theme="dark"] .bpm-value:focus { background: #2a2a2e; }
+  [data-theme="dark"] .btn:active { background: #2a2a2e; }
+  [data-theme="dark"] .btn-sound.active,
+  [data-theme="dark"] .btn-ts-quick.active,
+  [data-theme="dark"] .btn-sub.active { color: #1a1a1c; }
+  [data-theme="dark"] .btn-play.playing { background: #e8e8ea; color: #1a1a1c; }
+  [data-theme="dark"] .gain-item input[type="number"]:disabled,
+  [data-theme="dark"] .btn-sub:disabled { background: #1e1e20; }
+  [data-theme="dark"] .metronome-github:hover { background: #2a2a2e; }
+  [data-theme="dark"] .btn:hover { border-color: #555; }
+  [data-theme="dark"] .btn-ts-quick:hover,
+  [data-theme="dark"] .btn-sound:hover { border-color: #555; }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
@@ -90,6 +123,26 @@
     width: 20px; height: 20px;
     fill: currentColor;
   }
+  .metronome-theme {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 16px;
+    transition: color var(--transition), background var(--transition);
+    font-family: inherit;
+    line-height: 1;
+  }
+  .metronome-theme:hover {
+    color: var(--text);
+    background: #f0f0ed;
+  }
+  [data-theme="dark"] .metronome-theme:hover { background: #2a2a2e; }
 
   /* ── Pendulum ── */
   .pendulum-stage {
@@ -731,9 +784,12 @@
   <!-- Header -->
   <div class="metronome-header">
     <div class="metronome-author"><span>欧星星</span> ostar</div>
-    <a class="metronome-github" href="https://github.com/ostar999/ostar-simple-metronome" target="_blank" rel="noopener" title="GitHub">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
-    </a>
+    <div style="display:flex;align-items:center;gap:4px;">
+      <button class="metronome-theme" id="btnTheme" title="切换夜间模式" aria-label="切换夜间模式">🌙</button>
+      <a class="metronome-github" href="https://github.com/ostar999/ostar-simple-metronome" target="_blank" rel="noopener" title="GitHub">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      </a>
+    </div>
   </div>
 
   <!-- Pendulum -->
@@ -963,6 +1019,7 @@
   const $gainStrong     = document.getElementById('gainStrong');
   const $gainSecondary  = document.getElementById('gainSecondary');
   const $gainWeak       = document.getElementById('gainWeak');
+  const $btnTheme    = document.getElementById('btnTheme');
   const $btnReset    = document.getElementById('btnReset');
 
   // ═══════════════════════════════════════════════════════
@@ -1693,6 +1750,20 @@
     saveSettings();
   });
 
+  // Theme toggle
+  function applyTheme(dark) {
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    $btnTheme.textContent = dark ? '☀️' : '🌙';
+    try { localStorage.setItem('metronome_theme', dark ? 'dark' : 'light'); } catch(e) {}
+  }
+
+  function toggleTheme() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    applyTheme(!isDark);
+  }
+
+  $btnTheme.addEventListener('click', toggleTheme);
+
   $btnReset.addEventListener('click', resetToDefaults);
 
   document.addEventListener('keydown', handleKeydown);
@@ -1700,6 +1771,10 @@
   // ═══════════════════════════════════════════════════════
   // Init
   // ═══════════════════════════════════════════════════════
+  // Theme
+  const savedTheme = (() => { try { return localStorage.getItem('metronome_theme'); } catch(e) { return null; } })();
+  applyTheme(savedTheme === 'dark');
+
   buildScaleMarks();
   loadSettings();  // loads saved state & renders beat dots
   renderBeatDots(); // ensure rendered (in case loadSettings didn't)
