@@ -67,26 +67,138 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
+    height: 100vh;
+    height: 100dvh;
+    padding: 8px;
     background: var(--bg);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     user-select: none;
     -webkit-user-select: none;
     -webkit-tap-highlight-color: transparent;
+    overflow: hidden;
   }
 
   .metronome {
-    width: 440px;
+    width: 480px;
     max-width: calc(100vw - 24px);
     background: var(--surface);
     border-radius: 28px;
     box-shadow: var(--shadow-lg), var(--shadow-sm);
-    padding: 36px 34px 32px;
+    padding: 12px 30px 12px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 22px;
+    gap: 5px;
+    max-height: calc(100vh - 16px);
+    max-height: calc(100dvh - 16px);
+  }
+  .pendulum-stage { display: none; }
+  .bpm-value { font-size: 52px; width: 150px; padding: 2px 4px; }
+  .bpm-label { font-size: 11px; }
+  .tempo-marking { margin-top: 0; font-size: 12px; min-height: 14px; }
+  .tempo-presets { margin-top: 4px; gap: 3px; }
+  .tempo-presets-row { gap: 3px; }
+  .btn-tempo-preset { width: 56px; height: 36px; padding: 3px 4px; }
+  .btn-tempo-preset .preset-name { font-size: 8px; }
+  .btn-tempo-preset .preset-zh { font-size: 10px; }
+  .btn-tempo-preset .preset-bpm { font-size: 8px; }
+  .beat-row { gap: 4px; }
+  .beat-dot { width: 26px; height: 26px; font-size: 10px; }
+  .beat-dot.state-strong { width: 28px; height: 28px; }
+  .beat-dot.state-secondary { width: 26px; height: 26px; }
+  .beat-dot.state-weak,
+  .beat-dot.state-rest { width: 22px; height: 22px; }
+  .beat-legend { margin-top: 4px; font-size: 10px; gap: 10px; }
+  .gain-row { gap: 3px; }
+  .gain-label { font-size: 10px; }
+  .gain-tag { font-size: 10px; }
+  .gain-item input[type="number"] { width: 34px; font-size: 11px; padding: 3px 1px; }
+  .toggle-row { gap: 4px; font-size: 11px; }
+  .toggle-track { width: 36px; height: 20px; border-radius: 10px; }
+  .toggle-thumb { width: 16px; height: 16px; }
+  .toggle-track.on .toggle-thumb { transform: translateX(16px); }
+  .btn-play { width: 58px; height: 58px; font-size: 22px; }
+  .btn-sm { width: 42px; height: 42px; font-size: 18px; }
+  .ts-label { font-size: 11px; margin-bottom: 4px; }
+  .ts-buttons { gap: 4px; }
+  .btn-ts-quick { padding: 4px 10px; font-size: 12px; }
+  .sub-label { font-size: 10px; }
+  .sub-buttons { gap: 3px; }
+  .btn-sub { padding: 4px 3px; font-size: 11px; }
+  .sound-label { font-size: 10px; }
+  .sound-options { gap: 3px; }
+  .btn-sound { padding: 5px 3px; font-size: 11px; }
+  .slider-row { gap: 4px; }
+  .slider-label { font-size: 12px; min-width: 22px; }
+  .slider-val { font-size: 11px; min-width: 24px; }
+  .footer { font-size: 10px; }
+  .beat-counter { font-size: 11px; }
+  .btn-reset { font-size: 10px; padding: 3px 10px; }
+  .hint { font-size: 10px; }
+  .metronome-author { font-size: 11px; }
+  .metronome-header { margin-bottom: -4px; }
+  .metronome-github { width: 26px; height: 26px; }
+  .metronome-github svg { width: 18px; height: 18px; }
+  .metronome-theme { width: 26px; height: 26px; font-size: 14px; }
+  .scale-marks { display: none; }
+
+  @media (min-width: 700px) and (min-height: 800px) {
+    .metronome { width: 520px; padding: 18px 40px 18px; gap: 9px; }
+    .pendulum-stage { display: flex; width: 150px; height: 120px; }
+    .pendulum-arm { height: 92px; }
+    .pendulum-weight { top: 70px; width: 24px; height: 28px; margin-left: -12px; }
+    .bpm-value { font-size: 72px; width: 200px; }
+    .bpm-label { font-size: 13px; }
+    .tempo-marking { font-size: 14px; }
+    .btn-play { width: 72px; height: 72px; font-size: 26px; }
+    .btn-sm { width: 50px; height: 50px; font-size: 20px; }
+    .beat-dot { width: 32px; height: 32px; font-size: 12px; }
+    .beat-dot.state-strong { width: 36px; height: 36px; }
+    .beat-dot.state-secondary { width: 32px; height: 32px; }
+    .beat-dot.state-weak,
+    .beat-dot.state-rest { width: 28px; height: 28px; }
+    .beat-legend { font-size: 12px; }
+    .btn-tempo-preset { width: 66px; height: 46px; }
+    .btn-tempo-preset .preset-name { font-size: 10px; }
+    .btn-tempo-preset .preset-zh { font-size: 12px; }
+    .btn-tempo-preset .preset-bpm { font-size: 9px; }
+    .gain-item input[type="number"] { width: 40px; font-size: 13px; }
+    .toggle-row { font-size: 13px; }
+    .btn-ts-quick { font-size: 13px; }
+    .btn-sub { font-size: 12px; }
+    .btn-sound { font-size: 12px; }
+    .footer { font-size: 12px; }
+    .beat-counter { font-size: 13px; }
+    .metronome-author { font-size: 12px; }
+  }
+
+  @media (min-width: 900px) and (min-height: 900px) {
+    .metronome { width: 580px; padding: 24px 46px 24px; gap: 12px; }
+    .pendulum-stage { display: flex; width: 180px; height: 145px; }
+    .pendulum-arm { height: 110px; }
+    .pendulum-weight { top: 85px; width: 26px; height: 32px; margin-left: -13px; }
+    .bpm-value { font-size: 84px; width: 220px; }
+    .bpm-label { font-size: 14px; }
+    .tempo-marking { font-size: 15px; }
+    .btn-play { width: 80px; height: 80px; font-size: 28px; }
+    .btn-sm { width: 54px; height: 54px; font-size: 22px; }
+    .beat-dot { width: 36px; height: 36px; }
+    .beat-dot.state-strong { width: 40px; height: 40px; }
+    .beat-dot.state-secondary { width: 36px; height: 36px; }
+    .beat-dot.state-weak,
+    .beat-dot.state-rest { width: 32px; height: 32px; }
+    .btn-tempo-preset { width: 72px; height: 50px; }
+    .btn-tempo-preset .preset-name { font-size: 11px; }
+    .btn-tempo-preset .preset-zh { font-size: 13px; }
+    .btn-tempo-preset .preset-bpm { font-size: 10px; }
+    .gain-item input[type="number"] { width: 42px; font-size: 14px; }
+    .gain-label { font-size: 12px; }
+    .gain-tag { font-size: 12px; }
+    .ts-label { font-size: 13px; }
+    .sub-label { font-size: 12px; }
+    .sound-label { font-size: 12px; }
+    .slider-label { font-size: 14px; }
   }
 
   /* ── Header ── */
@@ -239,6 +351,27 @@
     min-height: 18px;
   }
 
+  /* ── Tempo presets toggle (mobile) ── */
+  .tempo-toggle {
+    display: none;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px 10px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-full);
+    background: var(--surface);
+    font-family: inherit;
+    margin-top: 6px;
+    transition: all var(--transition);
+  }
+  .tempo-toggle:hover { border-color: #ccc; color: var(--text); }
+  .tempo-toggle .arrow { transition: transform 0.2s ease; font-size: 10px; }
+  .tempo-toggle.open .arrow { transform: rotate(180deg); }
+
   /* ── Tempo presets ── */
   .tempo-presets {
     display: flex;
@@ -247,6 +380,14 @@
     gap: 5px;
     margin-top: 10px;
     width: 100%;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease;
+  }
+  .tempo-presets.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+    pointer-events: none;
   }
   .tempo-presets-row {
     display: flex;
@@ -751,30 +892,93 @@
 
   /* ── Responsive ── */
   @media (max-width: 460px) {
-    .metronome { width: calc(100vw - 16px); padding: 24px 16px 20px; gap: 18px; border-radius: 22px; }
-    .bpm-value { font-size: 56px; width: 150px; }
-    .pendulum-stage { width: 150px; height: 130px; }
-    .pendulum-arm { height: 95px; }
-    .pendulum-weight { top: 75px; width: 22px; height: 28px; margin-left: -11px; }
-    .beat-dot { width: 28px; height: 28px; font-size: 10px; }
-    .beat-dot.state-strong { width: 30px; height: 30px; }
-    .beat-dot.state-secondary { width: 28px; height: 28px; }
-    .beat-dot.state-weak,
-    .beat-dot.state-rest { width: 24px; height: 24px; }
-    .beat-dot::after { font-size: 8px; bottom: -12px; }
-    .btn-play { width: 60px; height: 60px; font-size: 22px; }
-    .btn-sm { width: 44px; height: 44px; font-size: 18px; }
-    .btn-tap { width: 44px; height: 44px; font-size: 11px; }
-    .btn-ts-quick { padding: 5px 10px; font-size: 12px; }
-    .btn-sound { padding: 6px 3px; font-size: 11px; }
-    .btn-tempo-preset { width: 54px; height: 40px; }
+    .metronome { width: calc(100vw - 12px); padding: 20px 18px 16px; gap: 11px; border-radius: 22px; }
+    .pendulum-stage { display: none; }
+    .bpm-value { font-size: 54px; width: 150px; }
+    .bpm-section { gap: 0; }
+    .bpm-label { font-size: 12px; }
+    .tempo-marking { margin-top: 2px; font-size: 14px; min-height: 18px; }
+    .tempo-toggle { display: inline-flex; font-size: 13px; padding: 5px 12px; }
+    .tempo-presets { margin-top: 8px; gap: 5px; }
+    .tempo-presets-row { gap: 5px; flex-wrap: wrap; }
+    .btn-tempo-preset { width: 82px; height: 46px; padding: 5px 6px; }
     .btn-tempo-preset .preset-name { font-size: 10px; }
+    .btn-tempo-preset .preset-zh { font-size: 12px; }
+    .btn-tempo-preset .preset-bpm { font-size: 10px; }
+    .beat-row { gap: 5px; }
+    .beat-dot { width: 26px; height: 26px; font-size: 11px; }
+    .beat-dot.state-strong { width: 28px; height: 28px; }
+    .beat-dot.state-secondary { width: 26px; height: 26px; }
+    .beat-dot.state-weak,
+    .beat-dot.state-rest { width: 22px; height: 22px; }
+    .beat-dot::after { bottom: -14px; font-size: 9px; }
+    .beat-legend { margin-top: 7px; font-size: 12px; gap: 12px; }
+    .gain-row { gap: 4px; }
+    .gain-label { font-size: 11px; }
+    .gain-tag { font-size: 11px; }
+    .gain-item input[type="number"] { width: 38px; font-size: 12px; padding: 4px 2px; }
+    .toggle-row { font-size: 12px; gap: 5px; }
+    .toggle-track { width: 38px; height: 22px; border-radius: 11px; }
+    .toggle-thumb { width: 18px; height: 18px; }
+    .toggle-track.on .toggle-thumb { transform: translateX(16px); }
+    .slider-row { gap: 5px; }
+    .slider-label { font-size: 14px; min-width: 24px; }
+    .slider-val { font-size: 12px; min-width: 26px; }
+    .ts-quick { margin-top: 0; }
+    .ts-label { font-size: 12px; margin-bottom: 5px; }
+    .ts-buttons { gap: 5px; }
+    .btn-ts-quick { padding: 5px 10px; font-size: 12px; }
+    .sub-row { gap: 5px; }
+    .sub-label { font-size: 11px; }
+    .sub-buttons { gap: 4px; }
+    .btn-sub { padding: 5px 4px; font-size: 12px; }
+    .sound-row { gap: 5px; }
+    .sound-label { font-size: 11px; }
+    .sound-options { gap: 4px; }
+    .btn-sound { padding: 6px 4px; font-size: 12px; }
+    .btn-play { width: 58px; height: 58px; font-size: 22px; }
+    .btn-sm { width: 44px; height: 44px; font-size: 18px; }
+    .btn-tap { width: auto; height: auto; padding: 6px 12px; font-size: 12px; }
+    .footer { font-size: 11px; gap: 4px; justify-content: center; }
+    .beat-counter { font-size: 12px; }
+    .hint { display: none; }
+    .btn-reset { font-size: 11px; padding: 4px 12px; }
+    .metronome-header { margin-bottom: -2px; }
+    .metronome-author { font-size: 12px; }
+    .divider { display: none; }
+    .main-controls { gap: 8px; }
+  }
+
+  @media (max-width: 380px) {
+    .metronome { width: 100vw; border-radius: 0; padding: 14px 12px 12px; gap: 8px; }
+    .bpm-value { font-size: 44px; width: 120px; }
+    .bpm-label { font-size: 11px; }
+    .tempo-marking { font-size: 12px; }
+    .tempo-toggle { font-size: 12px; padding: 4px 10px; }
+    .tempo-presets { margin-top: 5px; gap: 4px; }
+    .tempo-presets-row { gap: 4px; }
+    .btn-tempo-preset { width: 72px; height: 42px; padding: 4px 5px; }
+    .btn-tempo-preset .preset-name { font-size: 9px; }
     .btn-tempo-preset .preset-zh { font-size: 11px; }
     .btn-tempo-preset .preset-bpm { font-size: 9px; }
-    .footer { font-size: 11px; flex-wrap: wrap; gap: 4px; justify-content: center; }
-    .beat-counter { font-size: 12px; }
-    .hint { font-size: 10px; }
-    .btn-reset { font-size: 10px; padding: 4px 10px; }
+    .beat-dot { width: 22px; height: 22px; font-size: 10px; }
+    .beat-dot.state-strong { width: 24px; height: 24px; }
+    .beat-dot.state-secondary { width: 22px; height: 22px; }
+    .beat-dot.state-weak,
+    .beat-dot.state-rest { width: 18px; height: 18px; }
+    .beat-dot::after { bottom: -12px; font-size: 8px; }
+    .beat-legend { font-size: 11px; gap: 10px; margin-top: 5px; }
+    .gain-item input[type="number"] { width: 34px; font-size: 11px; }
+    .btn-play { width: 52px; height: 52px; font-size: 20px; }
+    .btn-sm { width: 40px; height: 40px; font-size: 16px; }
+    .btn-ts-quick { padding: 4px 8px; font-size: 11px; }
+    .btn-sub { padding: 4px 3px; font-size: 11px; }
+    .btn-sound { padding: 5px 3px; font-size: 11px; }
+    .btn-tap { padding: 5px 10px; font-size: 11px; }
+    .footer { font-size: 10px; }
+    .beat-counter { font-size: 11px; }
+    .btn-reset { font-size: 10px; padding: 3px 10px; }
+    .metronome-author { font-size: 11px; }
   }
 </style>
 </head>
@@ -805,6 +1009,7 @@
     <input type="number" class="bpm-value" id="bpmValue" value="80" min="30" max="250" inputmode="numeric">
     <div class="bpm-label">BPM</div>
     <div class="tempo-marking" id="tempoMarking">Andante</div>
+    <button class="tempo-toggle" id="tempoToggle"><span class="arrow">▼</span> 速度预设</button>
     <div class="tempo-presets" id="tempoPresets">
       <div class="tempo-presets-row">
         <button class="btn-tempo-preset" data-bpm="50">
@@ -1020,6 +1225,8 @@
   const $gainSecondary  = document.getElementById('gainSecondary');
   const $gainWeak       = document.getElementById('gainWeak');
   const $btnTheme    = document.getElementById('btnTheme');
+  const $tempoToggle = document.getElementById('tempoToggle');
+  const $tempoPresets= document.getElementById('tempoPresets');
   const $btnReset    = document.getElementById('btnReset');
 
   // ═══════════════════════════════════════════════════════
@@ -1764,6 +1971,34 @@
 
   $btnTheme.addEventListener('click', toggleTheme);
 
+  // Tempo presets toggle (mobile)
+  function isMobile() { return window.innerWidth <= 460; }
+
+  function collapsePresets() {
+    $tempoPresets.classList.add('collapsed');
+    $tempoToggle.classList.remove('open');
+  }
+
+  function expandPresets() {
+    $tempoPresets.classList.remove('collapsed');
+    $tempoToggle.classList.add('open');
+  }
+
+  $tempoToggle.addEventListener('click', () => {
+    if ($tempoPresets.classList.contains('collapsed')) {
+      expandPresets();
+    } else {
+      collapsePresets();
+    }
+  });
+
+  // Auto-collapse when tapping a preset on mobile
+  $tempoPresets.addEventListener('click', (e) => {
+    if (e.target.closest('.btn-tempo-preset') && isMobile()) {
+      collapsePresets();
+    }
+  });
+
   $btnReset.addEventListener('click', resetToDefaults);
 
   document.addEventListener('keydown', handleKeydown);
@@ -1774,6 +2009,9 @@
   // Theme
   const savedTheme = (() => { try { return localStorage.getItem('metronome_theme'); } catch(e) { return null; } })();
   applyTheme(savedTheme === 'dark');
+
+  // Collapse tempo presets on mobile by default
+  if (isMobile()) collapsePresets();
 
   buildScaleMarks();
   loadSettings();  // loads saved state & renders beat dots
