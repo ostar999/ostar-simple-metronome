@@ -21,7 +21,11 @@
 ## 🚀 使用
 
 ```bash
-open metronome.html
+# 普通用户推荐：直接打开整合版单文件
+open metronome_整合版-combined.html
+
+# 开发者推荐：拆分版
+open index.html
 ```
 
 ## ⌨️ 快捷键
@@ -35,7 +39,7 @@ open metronome.html
 
 ## 🛠 技术
 
-- 零依赖，单文件 2000 行
+- 零依赖；整合版单文件 ~2000 行，拆分版 index.html + assets/
 - Web Audio API 合成 + 调度
 - localStorage 持久化
 - CSS 变量 + 多级响应式

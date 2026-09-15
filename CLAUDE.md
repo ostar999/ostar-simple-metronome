@@ -2,17 +2,31 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 首要原则
+
+`index.html`、`assets/metronome.css`、`assets/metronome.js` 和 `metronome_整合版-combined.html` 编辑时，需要同步更新：改动其中任何一个文件，必须把等价改动同步到其余文件，保持拆分版与整合版功能一致。
+
 ## 项目概述
 
-单文件节拍器 Web 应用（`metronome.html` ~2000 行），纯静态 HTML/CSS/JS，浏览器直接打开。
+节拍器 Web 应用，纯静态 HTML/CSS/JS，浏览器直接打开。两种形态并存，内容等价：
+
+- 整合版（普通用户推荐）：`metronome_整合版-combined.html`（~2000 行，CSS/JS 内联单文件）
+- 拆分版（开发者推荐）：`index.html`（页面结构）+ `assets/metronome.css` + `assets/metronome.js`
 
 ```bash
-open metronome.html
+# 普通用户推荐：直接打开整合版单文件
+open metronome_整合版-combined.html
+
+# 开发者推荐：拆分版
+open index.html
 ```
 
 ## 文件结构
 
 三段式：CSS 变量 + 组件样式 → HTML UI → JS IIFE，均按 `/* ── 组件 ── */` / `// ═══ 模块 ═══` 分隔。
+
+- 整合版：三部分内联在 `metronome_整合版-combined.html` 一个文件里（head 内 `<style>` → body UI → body 末尾 `<script>`）
+- 拆分版：三部分分别对应 `assets/metronome.css` → `index.html` → `assets/metronome.js`
 
 ## JS 架构
 

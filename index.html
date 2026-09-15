@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>节拍器</title>
+<link rel="stylesheet" href="assets/metronome.css">
+</head>
+<body>
+
+<div class="metronome">
+  <!-- Header -->
+  <div class="metronome-header">
+    <div class="metronome-author"><span>欧星星</span> ostar</div>
+    <div style="display:flex;align-items:center;gap:4px;">
+      <button class="metronome-theme" id="btnTheme" title="切换夜间模式" aria-label="切换夜间模式">🌙</button>
+      <a class="metronome-github" href="https://github.com/ostar999/ostar-simple-metronome" target="_blank" rel="noopener" title="GitHub">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      </a>
+    </div>
+  </div>
+
+  <!-- Pendulum -->
+  <div class="pendulum-stage">
+    <div class="pendulum-pivot"></div>
+    <div class="pendulum-arm" id="pendulumArm"></div>
+    <div class="pendulum-weight"></div>
+    <div class="scale-marks" id="scaleMarks"></div>
+  </div>
+
+  <!-- BPM -->
+  <div class="bpm-section">
+    <input type="number" class="bpm-value" id="bpmValue" value="80" min="30" max="250" inputmode="numeric">
+    <div class="bpm-label">BPM</div>
+    <div class="tempo-marking" id="tempoMarking">Andante</div>
+    <button class="tempo-toggle" id="tempoToggle"><span class="arrow">▼</span> 速度预设</button>
+    <div class="tempo-presets" id="tempoPresets">
+      <div class="tempo-presets-row">
+        <button class="btn-tempo-preset" data-bpm="50">
+          <span class="preset-name">Largo</span><span class="preset-zh">广板</span><span class="preset-bpm">40–60</span>
+        </button>
+        <button class="btn-tempo-preset" data-bpm="72">
+          <span class="preset-name">Adagio</span><span class="preset-zh">柔板</span><span class="preset-bpm">66–76</span>
+        </button>
+        <button class="btn-tempo-preset" data-bpm="84">
+          <span class="preset-name">Andante</span><span class="preset-zh">行板</span><span class="preset-bpm">76–108</span>
+        </button>
+        <button class="btn-tempo-preset" data-bpm="108">
+          <span class="preset-name">Moderato</span><span class="preset-zh">中板</span><span class="preset-bpm">108–120</span>
+        </button>
+      </div>
+      <div class="tempo-presets-row">
+        <button class="btn-tempo-preset" data-bpm="132">
+          <span class="preset-name">Allegro</span><span class="preset-zh">快板</span><span class="preset-bpm">120–156</span>
+        </button>
+        <button class="btn-tempo-preset" data-bpm="152">
+          <span class="preset-name">Vivace</span><span class="preset-zh">活板</span><span class="preset-bpm">156–176</span>
+        </button>
+        <button class="btn-tempo-preset" data-bpm="180">
+          <span class="preset-name">Presto</span><span class="preset-zh">急板</span><span class="preset-bpm">168–200</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Beat dots -->
+  <div class="beat-section">
+    <div class="beat-row" id="beatRow"></div>
+    <div class="beat-legend">
+      <span><span class="legend-dot ld-strong"></span>强</span>
+      <span><span class="legend-dot ld-secondary"></span>次强</span>
+      <span><span class="legend-dot ld-weak"></span>弱</span>
+      <span><span class="legend-dot ld-rest"></span>休止</span>
+    </div>
+  </div>
+
+  <!-- Gain inputs -->
+  <div class="gain-row">
+    <span class="gain-label">强度</span>
+    <div class="gain-item">
+      <span class="gain-tag">强</span>
+      <input type="number" id="gainStrong" value="1.0" min="0" max="1" step="0.1">
+    </div>
+    <div class="gain-item">
+      <span class="gain-tag">次强</span>
+      <input type="number" id="gainSecondary" value="0.6" min="0" max="1" step="0.1">
+    </div>
+    <div class="gain-item">
+      <span class="gain-tag">弱</span>
+      <input type="number" id="gainWeak" value="0.5" min="0" max="1" step="0.1">
+    </div>
+    <div class="toggle-row gain-toggle">
+      <span>突出次强</span>
+      <div class="toggle-track on" id="toggleSecondary">
+        <div class="toggle-thumb"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BPM slider -->
+  <div class="slider-row">
+    <span class="slider-val">30</span>
+    <input type="range" id="bpmSlider" min="30" max="250" value="80" step="1">
+    <span class="slider-val">250</span>
+  </div>
+
+  <!-- Time signature quick -->
+  <div class="ts-quick">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <span class="ts-label" style="margin-bottom:0;">拍号</span>
+      <button class="btn btn-tap" id="btnTap" style="width:auto;height:auto;padding:6px 14px;font-size:13px;">TAP</button>
+    </div>
+    <div class="ts-buttons" id="tsButtons">
+      <button class="btn-ts-quick" data-beats="2" data-denom="4" data-pattern="strong,weak">2/4</button>
+      <button class="btn-ts-quick" data-beats="3" data-denom="4" data-pattern="strong,weak,weak">3/4</button>
+      <button class="btn-ts-quick active" data-beats="4" data-denom="4" data-pattern="strong,weak,secondary,weak">4/4</button>
+      <button class="btn-ts-quick" data-beats="3" data-denom="8" data-pattern="strong,weak,weak">3/8</button>
+      <button class="btn-ts-quick" data-beats="6" data-denom="8" data-pattern="strong,weak,weak,secondary,weak,weak">6/8</button>
+      <button class="btn-ts-quick" data-beats="12" data-denom="8" data-pattern="strong,weak,weak,secondary,weak,weak,secondary,weak,weak,secondary,weak,weak">12/8</button>
+    </div>
+  </div>
+
+  <!-- Subdivision -->
+  <div class="sub-row">
+    <span class="sub-label">音符</span>
+    <div class="sub-buttons" id="subButtons">
+      <button class="btn-sub active" data-note="4">4分</button>
+      <button class="btn-sub" data-note="8">8分</button>
+      <button class="btn-sub" data-note="16">16分</button>
+      <button class="btn-sub" data-note="32">32分</button>
+    </div>
+  </div>
+
+  <!-- Sound + Volume -->
+  <div class="sound-row">
+    <span class="sound-label">音色</span>
+    <div class="sound-options" id="soundOptions">
+      <button class="btn-sound active" data-sound="classic">经典</button>
+      <button class="btn-sound" data-sound="wood">木鱼</button>
+      <button class="btn-sound" data-sound="digital">电子</button>
+      <button class="btn-sound" data-sound="clave">响棒</button>
+    </div>
+  </div>
+  <div class="slider-row">
+    <span class="slider-label">🔈</span>
+    <input type="range" id="volumeSlider" min="0" max="100" value="80" step="1">
+    <span class="slider-label">🔊</span>
+    <span class="slider-val" id="volumeVal">80</span>
+  </div>
+
+  <!-- Main controls -->
+  <div class="main-controls">
+    <button class="btn btn-sm" id="btnMinus" aria-label="减速">−</button>
+    <button class="btn btn-play" id="btnPlay" aria-label="播放/暂停">
+      <span id="playIcon">▶</span>
+    </button>
+    <button class="btn btn-sm" id="btnPlus" aria-label="加速">+</button>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span class="beat-counter" id="beatCounter">0 / 4</span>
+    <button class="btn-reset" id="btnReset">↺ 重置</button>
+    <span class="hint">Space 启停</span>
+  </div>
+</div>
+
+<script src="assets/metronome.js"></script>
+</body>
+</html>
