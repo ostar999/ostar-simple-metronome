@@ -43,3 +43,8 @@ open index.html
 - Web Audio API 合成 + 调度
 - localStorage 持久化
 - CSS 变量 + 多级响应式
+
+## 作者信息
+
+- 欧星星：ota1754@qq.com
+- 授权：遵循MIT开源协议。
